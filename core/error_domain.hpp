@@ -93,7 +93,6 @@ protected:
     ~ErrorDomain() noexcept = default;
 };
 
-
 /**
  * @note    [SWS_CORE_00010]
  * @brief   所有错误域都应有一个系统范围内唯一的标识符，该标识符表示为一个64位无符号整数值。

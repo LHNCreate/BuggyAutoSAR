@@ -132,7 +132,6 @@ public:
     T && operator* () &&;
 
 
-
 private:
 };
 
