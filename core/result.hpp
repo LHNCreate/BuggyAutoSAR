@@ -28,7 +28,8 @@
 #include <error_code.hpp>
 namespace ara::core {
 // Implementation - [SWS_CORE_00701]
-template<typename T, typename E = ErrorCode> class Result final
+template<typename T, typename E = ErrorCode>
+class Result final
 {
 public:
     // Implementation - [SWS_CORE_00711] - Type alias for the type T of values .
@@ -106,30 +107,30 @@ public:
     const T& operator*() const&;
 
     // Implementation - [SWS_CORE_00754]
-    const T * operator-> () const;
+    const T* operator->() const;
 
     // Implementation - [SWS_CORE_00755]
-    const T & Value () const &;
+    const T& Value() const&;
 
     // Implementation - [SWS_CORE_00756]
-    T && Value () &&;
+    T&& Value() &&;
 
     // Implementation - [SWS_CORE_00757]
-    const E & Error () const &;
+    const E& Error() const&;
 
     // Implementation - [SWS_CORE_00758]
-    E && Error () &&;
+    E&& Error() &&;
 
     // Implementation - [SWS_CORE_00774]
     T& operator*() &;
 
     // Implementation - [SWS_CORE_00775]
-    T & Value () &;
+    T& Value() &;
     // Implementation - [SWS_CORE_00776]
-    E & Error () &;
+    E& Error() &;
 
     // Implementation - [SWS_CORE_00759]
-    T && operator* () &&;
+    T&& operator*() &&;
 
 
 private:
