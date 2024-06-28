@@ -25,11 +25,13 @@
 
 #ifndef THREADPRACTISEYEEAH_RESULT_HPP
 #define THREADPRACTISEYEEAH_RESULT_HPP
+
+#include <Optional.hpp>
 #include <error_code.hpp>
+#include <variant>
 namespace ara::core {
 // Implementation - [SWS_CORE_00701]
-template<typename T, typename E = ErrorCode>
-class Result final
+template<typename T, typename E = ErrorCode> class Result final
 {
 public:
     // Implementation - [SWS_CORE_00711] - Type alias for the type T of values .
@@ -37,35 +39,48 @@ public:
     // Implementation - [SWS_CORE_00712] - Type alias for the type E of errors .
     using error_type = E;
     // Implementation - [SWS_CORE_00721]
-    explicit Result(const T& t) {}
+    explicit Result(const T& t)
+        : value_(t)
+    {}
 
     // Implementation - [SWS_CORE_00722]
-    explicit Result(const T&& t) {}
+    explicit Result(const T&& t)
+        : value_(std::move(t))
+    {}
 
     // Implementation - [SWS_CORE_00723]
-    explicit Result(const E& e) {}
+    explicit Result(const E& e)
+        : value_(e)
+    {}
 
     // Implementation - [SWS_CORE_00724]
-    explicit Result(const E&& e) {}
+    explicit Result(const E&& e)
+        : value_(std::move(e))
+    {}
 
     // Implementation - [SWS_CORE_00725]
-    Result(const Result& other);
+    Result(const Result& other) = default;
 
     // Implementation - [SWS_CORE_00726]
     Result(Result&& other) noexcept(std::is_nothrow_move_constructible<T>::value &&
-                                    std::is_nothrow_move_constructible<E>::value);
+                                    std::is_nothrow_move_constructible<E>::value) = default;
 
     // Implementation - [SWS_CORE_00727]
-    ~Result() noexcept;
+    ~Result() noexcept = default;
 
     // Implementation - [SWS_CORE_00731]
-    static Result FromValue(const T& t);
+    static Result FromValue(const T& t) { return Result(t); }
 
     // Implementation - [SWS_CORE_00732]
-    static Result FromValue(T&& t);
+    static Result FromValue(T&& t) { return Result(std::move(t)); }
 
     // Implementation - [SWS_CORE_00733]
-    template<typename... Args> static Result FromValue(Args&&... args);
+    template<typename... Args>
+    static Result FromValue(Args&&... args)
+    {
+
+        return Result(T(std::forward<Args>(args)...));
+    }
 
     // Implementation - [SWS_CORE_00734]
     static Result FromError(const E& e);
@@ -126,15 +141,67 @@ public:
 
     // Implementation - [SWS_CORE_00775]
     T& Value() &;
+
     // Implementation - [SWS_CORE_00776]
     E& Error() &;
 
     // Implementation - [SWS_CORE_00759]
     T&& operator*() &&;
 
+    // Implementation - [SWS_CORE_00770]
+    Optional<T> Ok() const&;
+
+    // Implementation - [SWS_CORE_00771]
+    Optional<T> Ok() &&;
+
+    // Implementation - [SWS_CORE_00772]
+    Optional<E> Err() const&;
+
+    // Implementation - [SWS_CORE_00773]
+    Optional<E> Err() &&;
+
+    // Implementation - [SWS_CORE_00761]
+    template<typename U> T ValueOr(U&& defaultValue) const&;
+
+    // Implementation - [SWS_CORE_00762]
+    template<typename U> T ValueOr(U&& defaultValue) &&;
+
+    // Implementation - [SWS_CORE_00763]
+    template<typename G> E ErrorOr(G&& defaultValue) const&;
+
+    // Implementation - [SWS_CORE_00764]
+    template<typename G> E ErrorOr(G&& defaultError) &&;
+
+    // Implementation - [SWS_CORE_00765]
+    template<typename G> bool CheckError(G&& error) const;
+
+    // Implementation - [SWS_CORE_00766]
+    const T& ValueOrThrow() const& noexcept(false);
+
+    // Implementation - [SWS_CORE_00767]
+    template<typename F> T Resolve(F&& f) const;
+
+    // Implementation - [SWS_CORE_00768]
+    template<typename F> auto Bind(F&& f) const;
+
+
+    // Implementation - [SWS_CORE_00769]
+    T&& ValueOrThrow() && noexcept(false);
+
 
 private:
-};
+    std::variant<T, E> value_;
+};   // class Result
+
+// Implementation - [SWS_CORE_00801] - 特化void
+template<typename E> class Result<void, E> final
+{};
+
+
+
+
+
+
 
 }   // namespace ara::core
 
