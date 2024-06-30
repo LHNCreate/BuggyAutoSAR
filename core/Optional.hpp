@@ -25,22 +25,41 @@
 #ifndef BUGGYAUTOSAR_OPTIONAL_HPP
 #define BUGGYAUTOSAR_OPTIONAL_HPP
 
+#include <exception>
 #include <optional>
-
 namespace ara::core {
+
+class bad_optional_access : public std::exception
+{
+public:
+    bad_optional_access()          = default;
+    virtual ~bad_optional_access() = default;
+
+    [[nodiscard]] const char* what() const noexcept override
+    {
+        return "[ara::core] Bad optional access";
+    }
+};
+
 struct nullopt_t
 {
-    //tag类构造函数应该使用explicit防止歧义
+    // tag类构造函数应该使用explicit防止歧义
     explicit nullopt_t() = default;
 };
 
 inline nullopt_t nullopt;
 
-
-template<class T> struct Optional
+template<class T>
+struct Optional
 {
     bool m_has_value;
-    T    m_value;
+
+    union
+    {
+        T         m_value;
+        nullopt_t m_nullopt;
+    };
+
 
     Optional(T value)
         : m_has_value(true)
@@ -49,24 +68,52 @@ template<class T> struct Optional
 
     Optional()
         : m_has_value(false)
-        , m_value()
+        , m_nullopt()
     {}
 
     Optional(nullopt_t nt)
         : m_has_value(false)
-        , m_value()
+        , m_nullopt()
     {}
-    bool has_value() const{
-        return m_has_value;
+    ~Optional()
+    {
+        if (m_has_value) {
+            m_value.~T();
+        }
     }
+    bool has_value() const { return m_has_value; }
 
-    T value() const{
-        if (!m_has_value){
-            throw std::bad_optional_access();
+    const T& value() const&
+    {
+        if (!m_has_value) {
+            throw bad_optional_access();
         }
         return m_value;
     }
 
+    T& value() &
+    {
+        if (!m_has_value) {
+            throw bad_optional_access();
+        }
+        return m_value;
+    }
+
+    T&& value() &&
+    {
+        if (!m_has_value) {
+            throw bad_optional_access();
+        }
+        return std::move(m_value);
+    }
+
+    const T&& value() const&&
+    {
+        if (!m_has_value) {
+            throw bad_optional_access();
+        }
+        return std::move(m_value);
+    }
 };
 
 
