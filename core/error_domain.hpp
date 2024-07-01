@@ -27,10 +27,13 @@
 #ifndef THREADPRACTISEYEEAH_ERROR_DOMAIN_HPP
 #define THREADPRACTISEYEEAH_ERROR_DOMAIN_HPP
 
+#include "error_code.hpp"
 #include <cstdint>
 #include <error_code.hpp>
 
 namespace ara::core {
+
+class ErrorCode;
 
 class ErrorDomain
 {

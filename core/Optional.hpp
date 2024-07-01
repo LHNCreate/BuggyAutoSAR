@@ -114,18 +114,10 @@ struct Optional
         }
         return std::move(m_value);
     }
+
 };
 
-
 }   // namespace ara::core
-
-
-
-
-
-
-
-
 
 
 #endif   // BUGGYAUTOSAR_OPTIONAL_HPP

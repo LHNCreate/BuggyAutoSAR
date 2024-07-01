@@ -29,8 +29,6 @@
 #include <error_domain.hpp>
 #include <string_view>
 #include <type_traits>
-// 前向声明
-class ErrorDomain;
 
 namespace ara::core {
 class ErrorCode final
@@ -39,8 +37,8 @@ class ErrorCode final
 public:
     // Implementation - [SWS_CORE_00512]
     template<typename EnumT>
-    constexpr ErrorCode(EnumT                        e,
-                        ErrorDomain::SupportDataType data = ErrorDomain::SupportDataType()) noexcept
+    explicit ErrorCode(EnumT                        e,
+                       ErrorDomain::SupportDataType data = ErrorDomain::SupportDataType()) noexcept
 
         : m_errorCodeValue(0)
         , m_supportData(data)
