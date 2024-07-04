@@ -29,7 +29,6 @@
 
 #include "error_code.hpp"
 #include <cstdint>
-#include <error_code.hpp>
 
 namespace ara::core {
 
