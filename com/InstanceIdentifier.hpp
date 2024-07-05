@@ -20,7 +20,7 @@
 /**
  * @file           : InstanceIdentifier.hpp
  * @author         : leehaonan
- * @brief          : None
+ * @brief          : 对InstanceIdentifier进行实现
  * @attention      : None
  * @date           : 2024/7/4
  *
@@ -28,27 +28,47 @@
 
 #ifndef BUGGYAUTOSAR_INSTANCEIDENTIFIER_HPP
 #define BUGGYAUTOSAR_INSTANCEIDENTIFIER_HPP
-#include <string_view>
 #include <core/result.hpp>
-
+#include <string_view>
+#include <core/error_code.hpp>
 namespace ara::com {
+// Implementation - [SWS_CM_00302]
 class InstanceIdentifier
 {
     using StringView = std::string_view;
+
 public:
-    static ara::core::Result<InstanceIdentifier> Create(StringView serializedFormat) noexcept;
+    static ara::core::Result<InstanceIdentifier> Create(StringView serializedFormat) noexcept {
+        if(serializedFormat.empty()){
+//        todo    return ara::core::Result<InstanceIdentifier>::FromError(Instance_Errors::INVALID_PARAM);
+        }
+        return ara::core::Result<InstanceIdentifier>::FromValue(InstanceIdentifier(serializedFormat));
+    }
 
-    explicit InstanceIdentifier(StringView serializedFormat);
+    explicit InstanceIdentifier(StringView serializedFormat)
+        : instanceID(serializedFormat)
+    {}
 
-    StringView ToString() const;
+    StringView ToString() const{
+        return instanceID;
+    }
 
-    bool operator==(const InstanceIdentifier& other) const;
+    bool operator==(const InstanceIdentifier& other) const{
+        return this->instanceID == other.instanceID;
+    }
 
-    bool operator<(const InstanceIdentifier& other) const;
+    bool operator<(const InstanceIdentifier& other) const{
+        return this->instanceID < other.instanceID;
+    }
 
     InstanceIdentifier& operator=(const InstanceIdentifier& other) = default;
 
 
+private:
+    StringView instanceID;
+    enum class Instance_Errors : int32_t {
+        INVALID_PARAM,
+    };
 };
 
 

@@ -30,12 +30,14 @@
 #include <functional>
 #include <vector>
 #include <cstdint>
-
+#include <com/ServiceIdentifierType.hpp>
 namespace ara::com {
 // Implementation - [SWS_CM_00303]
 struct FindServiceHandle
 {
     //todo serviceIdentifier && instanceIdentifier
+
+    ServiceIdentifierType m_serviceID;
 
     std::uint32_t uid;
 

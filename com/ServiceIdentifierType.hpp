@@ -31,7 +31,6 @@
 #include <string>
 #include <string_view>
 
-
 // Implementation - [SWS_CM_01010]
 class ServiceIdentifierType
 {

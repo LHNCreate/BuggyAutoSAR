@@ -596,7 +596,7 @@ class Result<void, E> final
 
 
 private:
-    std::variant<void, E> value_;
+    std::variant<std::monostate, E> value_;
 };
 
 
