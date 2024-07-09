@@ -441,33 +441,39 @@ class Result<void, E> final
 
     // Implementation - [SWS_CORE_00843]
     template<typename... Args>
-    void EmplaceValue(Args&&... args) noexcept{
+    void EmplaceValue(Args&&... args) noexcept
+    {
         value_.template emplace<void>(std::forward<Args>(args)...);
     }
 
     // Implementation - [SWS_CORE_00844]
     template<typename... Args>
-    void EmplaceError(Args&&... args) noexcept{
+    void EmplaceError(Args&&... args) noexcept
+    {
         value_.template emplace<E>(std::forward<Args>(args)...);
     }
     // Implementation - [SWS_CORE_00845]
     void Swap(Result& other) noexcept(std::is_nothrow_move_constructible<E>::value &&
-                                      std::is_nothrow_move_assignable<E>::value){
+                                      std::is_nothrow_move_assignable<E>::value)
+    {
         value_.swap(other.value_);
     }
 
     // Implementation - [SWS_CORE_00851]
-    bool HasValue() const noexcept{
+    bool HasValue() const noexcept
+    {
         return false;
     }
 
     // Implementation - [SWS_CORE_00852]
-    explicit operator bool() const noexcept{
+    explicit operator bool() const noexcept
+    {
         return HasValue();
     }
 
     // Implementation - [SWS_CORE_00853]
-    void operator*() const{
+    void operator*() const
+    {
         if (HasValue()) {
             //[SWS_CORE_00021] - Violation is non-recoverable.
             // TODO: LOG PRINT
@@ -476,7 +482,8 @@ class Result<void, E> final
     }
 
     // Implementation - [SWS_CORE_00855]
-    void Value() const{
+    void Value() const
+    {
         if (!HasValue()) {
             //[SWS_CORE_00021] - Violation is non-recoverable.
             // TODO: LOG PRINT
@@ -485,8 +492,9 @@ class Result<void, E> final
     }
 
     // Implementation - [SWS_CORE_00857]
-    const E& Error() const&{
-        if(std::holds_alternative<E>(value_)){
+    const E& Error() const&
+    {
+        if (std::holds_alternative<E>(value_)) {
             return std::get<E>(value_);
         }
         //[SWS_CORE_00021] - Violation is non-recoverable.
@@ -495,8 +503,9 @@ class Result<void, E> final
     }
 
     // Implementation - [SWS_CORE_00876]
-    E& Error() &{
-        if(std::holds_alternative<E>(value_)){
+    E& Error() &
+    {
+        if (std::holds_alternative<E>(value_)) {
             return std::get<E>(value_);
         }
         //[SWS_CORE_00021] - Violation is non-recoverable.
@@ -505,8 +514,9 @@ class Result<void, E> final
     }
 
     // Implementation - [SWS_CORE_00858]
-    E&& Error() &&{
-        if(std::holds_alternative<E>(value_)){
+    E&& Error() &&
+    {
+        if (std::holds_alternative<E>(value_)) {
             return std::get<E>(std::move(value_));
         }
         //[SWS_CORE_00021] - Violation is non-recoverable.
@@ -515,16 +525,18 @@ class Result<void, E> final
     }
 
     // Implementation - [SWS_CORE_00868]
-    std::optional<E> Err() const&{
-        if(std::holds_alternative<E>(value_)){
+    std::optional<E> Err() const&
+    {
+        if (std::holds_alternative<E>(value_)) {
             return std::get<E>(value_);
         }
         return std::nullopt;
     }
 
     // Implementation - [SWS_CORE_00869]
-    std::optional<E> Err() &&{
-        if(std::holds_alternative<E>(value_)){
+    std::optional<E> Err() &&
+    {
+        if (std::holds_alternative<E>(value_)) {
             return std::get<E>(std::move(value_));
         }
         return std::nullopt;
@@ -541,17 +553,18 @@ class Result<void, E> final
 
     // Implementation - [SWS_CORE_00863]
     template<typename G>
-    E ErrorOr(G&& defaultError) const&{
+    E ErrorOr(G&& defaultError) const&
+    {
         if (std::holds_alternative<E>(value_)) {
             return std::get<E>(value_);
         }
         return static_cast<E>(std::forward<G>(defaultError));
-
     }
 
     // Implementation - [SWS_CORE_00864]
     template<typename G>
-    E ErrorOr(G&& defaultError) &&{
+    E ErrorOr(G&& defaultError) &&
+    {
         if (std::holds_alternative<E>(value_)) {
             return std::get<E>(std::move(value_));
         }
@@ -560,26 +573,30 @@ class Result<void, E> final
 
 
     // Implementation - [SWS_CORE_00865]
-    template <typename G>
-    bool CheckError (G &&error) const{
+    template<typename G>
+    bool CheckError(G&& error) const
+    {
         return Error() == static_cast<E>(std::forward<G>(error));
     }
 
     // Implementation - [SWS_CORE_00866]
-    void ValueOrThrow() const noexcept(false){
+    void ValueOrThrow() const noexcept(false)
+    {
         throw std::runtime_error("Result has no value");
     }
 
     // Implementation - [SWS_CORE_00867]
     template<typename F>
-    void Resolve(F&& f) const{
+    void Resolve(F&& f) const
+    {
         return std::forward<F>(f)(Error());
     }
 
 
     // Implementation - [SWS_CORE_00870]
     template<typename F>
-    auto Bind(F&& f) const{
+    auto Bind(F&& f) const
+    {
         using ReturnType = decltype(std::forward<F>(f)(Error()));
         if (std::holds_alternative<E>(value_)) {
             if constexpr (std::is_same_v<ReturnType, Result>) {

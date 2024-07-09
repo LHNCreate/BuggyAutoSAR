@@ -37,17 +37,12 @@ class ErrorCode final
 public:
     // Implementation - [SWS_CORE_00512]
     template<typename EnumT>
-    explicit ErrorCode(EnumT                        e,
+    constexpr explicit ErrorCode(EnumT                        e,
                        ErrorDomain::SupportDataType data = ErrorDomain::SupportDataType()) noexcept
 
-        : m_errorCodeValue(0)
+        : m_errorCodeValue(static_cast<ErrorDomain::CodeType>(e))
         , m_supportData(data)
-    {
-        static_assert(std::is_enum<EnumT>::value, "EnumT must be an enum type.");
-        if constexpr (std::is_enum<EnumT>::value) {
-            m_errorCodeValue = static_cast<int32_t>(e);
-        }
-    }
+    {}
 
     // Implementation - [SWS_CORE_00513]
     constexpr ErrorCode(ErrorDomain::CodeType value, const ErrorDomain& domain,
@@ -56,6 +51,8 @@ public:
         , m_errorDomain(domain)
         , m_supportData(data)
     {}
+
+    ~ErrorCode() = default;
 
     // Implementation - [SWS_CORE_00514]
     [[nodiscard]] constexpr ErrorDomain::CodeType Value() const noexcept

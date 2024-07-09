@@ -124,6 +124,8 @@ static constexpr ErrorDomain::Idtype FutureErrorDomain = 0x8000000000000013;
 // Implementation - [SWS_CORE_00014]
 static constexpr ErrorDomain::Idtype CoreErrorDomain = 0x8000000000000014;
 
+static constexpr ErrorDomain::Idtype ComErrorDomain = 0x8000000000001267;
+
 }   // namespace ara::core
 
 

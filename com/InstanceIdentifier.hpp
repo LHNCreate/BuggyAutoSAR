@@ -16,21 +16,24 @@
  */
 
 
-
 /**
  * @file           : InstanceIdentifier.hpp
  * @author         : leehaonan
  * @brief          : 对InstanceIdentifier进行实现
- * @attention      : None
+ * @version        : R23-11
  * @date           : 2024/7/4
  *
  */
 
 #ifndef BUGGYAUTOSAR_INSTANCEIDENTIFIER_HPP
 #define BUGGYAUTOSAR_INSTANCEIDENTIFIER_HPP
+#include <com/ComErrorDomain.hpp>
+#include <core/error_code.hpp>
 #include <core/result.hpp>
 #include <string_view>
-#include <core/error_code.hpp>
+
+
+
 namespace ara::com {
 // Implementation - [SWS_CM_00302]
 class InstanceIdentifier
@@ -38,26 +41,29 @@ class InstanceIdentifier
     using StringView = std::string_view;
 
 public:
-    static ara::core::Result<InstanceIdentifier> Create(StringView serializedFormat) noexcept {
-        if(serializedFormat.empty()){
-//        todo    return ara::core::Result<InstanceIdentifier>::FromError(Instance_Errors::INVALID_PARAM);
+    static ara::core::Result<InstanceIdentifier> Create(StringView serializedFormat)
+    {
+        if (serializedFormat.empty()) {
+            // todo ComErrc::kInvalidInstanceIdentifierString shall be returned
+            return ara::core::Result<InstanceIdentifier>::FromError();
         }
-        return ara::core::Result<InstanceIdentifier>::FromValue(InstanceIdentifier(serializedFormat));
+        return ara::core::Result<InstanceIdentifier>::FromValue(
+            InstanceIdentifier(serializedFormat));
     }
 
     explicit InstanceIdentifier(StringView serializedFormat)
         : instanceID(serializedFormat)
     {}
 
-    StringView ToString() const{
-        return instanceID;
-    }
+    StringView ToString() const { return instanceID; }
 
-    bool operator==(const InstanceIdentifier& other) const{
+    bool operator==(const InstanceIdentifier& other) const
+    {
         return this->instanceID == other.instanceID;
     }
 
-    bool operator<(const InstanceIdentifier& other) const{
+    bool operator<(const InstanceIdentifier& other) const
+    {
         return this->instanceID < other.instanceID;
     }
 
@@ -66,9 +72,6 @@ public:
 
 private:
     StringView instanceID;
-    enum class Instance_Errors : int32_t {
-        INVALID_PARAM,
-    };
 };
 
 
