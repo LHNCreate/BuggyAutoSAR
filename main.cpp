@@ -55,6 +55,19 @@ void testVector()
     std::cout << v1[0] << std::endl;
 }
 
+enum class TestEnum {
+    VALUE1 = 1,
+    VALUE2 = 2
+};
+
+void testErrorCode(){
+
+
+
+
+
+
+}
 
 
 

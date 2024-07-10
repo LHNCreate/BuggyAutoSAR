@@ -48,6 +48,9 @@ public:
     // data，还没想好咋处理暂时先用std::int32_t好了
     using SupportDataType = std::int32_t;
 
+    ErrorDomain() = default;
+
+
     // Implementation - [SWS_CORE_00131]
     ErrorDomain(const ErrorDomain&) = delete;
 

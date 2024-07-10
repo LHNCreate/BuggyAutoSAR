@@ -15,4 +15,9 @@ add_executable(BuggyAutoSAR main.cpp ${core_files})
 find_package(folly CONFIG REQUIRED)
 target_link_libraries(BuggyAutoSAR PRIVATE Folly::folly Folly::folly_deps Folly::follybenchmark Folly::folly_test_util)
 
+#spdlog
+find_package(spdlog CONFIG REQUIRED)
+target_link_libraries(BuggyAutoSAR PRIVATE spdlog::spdlog)
+
+
 target_include_directories(BuggyAutoSAR PRIVATE .)
