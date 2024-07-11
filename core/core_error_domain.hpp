@@ -30,11 +30,12 @@
 #define BUGGYAUTOSAR_CORE_ERROR_DOMAIN_HPP
 #include <core/error_domain.hpp>
 #include <core/exception.hpp>
-#include <string>
 #include <folly/Conv.h>
-
+#include <folly/FBString.h>
+#include <string>
 
 namespace ara::core {
+
 
 /**
  *
@@ -51,7 +52,6 @@ enum class CoreErrc : ara::core::ErrorDomain::CodeType
     kInvalidMetaModelPath = 138,   // missing or invalid path to model element
 };
 
-
 /**
  *
  * @brief Exception type thrown for CORE errors.
@@ -63,21 +63,10 @@ class CoreException : public ara::core::Exception
 public:
     // Implementation - [SWS_CORE_05231]
     explicit CoreException(ErrorCode err) noexcept
-        : m_errorCode(err)
+        : ara::core::Exception(err)
     {
     }
-
-    const char* what() const noexcept override
-    {
-
-        return "[ara::core] Core Exception Occurred By Code:" + std::to_string(m_errorCode);
-    }
-
-
-private:
-    ErrorCode m_errorCode;
 };
-
 
 /**
  *
@@ -88,6 +77,12 @@ private:
 class CoreErrorDomain final : public ErrorDomain
 {
 public:
+    static CoreErrorDomain& GetInstance() noexcept
+    {
+        static CoreErrorDomain instance;
+        return instance;
+    }
+
     // Implementation - [SWS_CORE_05231]
     using Errc = CoreErrc;
 
@@ -106,12 +101,23 @@ public:
     // Implementation - [SWS_CORE_05243]
     const char* Message(ErrorDomain::CodeType errorCode) const noexcept override
     {
-
+        static thread_local folly::fbstring message;
+        message = folly::to<folly::fbstring>(errorCode);
+        return message.c_str();
     }
 
-private:
-    const char* m_message;
+    void ThrowAsException(const ErrorCode& errorCode) const noexcept(false) override
+    {
+    }
 };
+
+
+// Implementation - [SWS_CORE_05290]
+ErrorCode MakeErrorCode(CoreErrc code, ErrorDomain::SupportDataType data) noexcept
+{
+    // use a braced initializer list instead
+    return {static_cast<ErrorDomain::CodeType>(code), CoreErrorDomain::GetInstance(), data};
+}
 
 
 

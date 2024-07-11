@@ -2,6 +2,7 @@
 #include <core/Optional.hpp>
 #include <core/Vector.hpp>
 #include <core/result.hpp>
+#include <core/core_error_domain.hpp>
 #include <iostream>
 #include <string>
 enum ErrorCodeTest : std::int32_t
@@ -63,11 +64,9 @@ enum class TestEnum {
 void testErrorCode(){
 
 
-
-
-
-
 }
+
+
 
 
 

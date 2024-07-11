@@ -26,21 +26,22 @@
 
 #ifndef BUGGYAUTOSAR_EXCEPTION_HPP
 #define BUGGYAUTOSAR_EXCEPTION_HPP
-#include <core/error_code.hpp>
+
 #include <exception>
+#include <core/error_code.hpp>
 namespace ara::core {
 
+class ErrorCode;
 
 // Implementation - [SWS_CORE_00601]
 class Exception : public std::exception
 {
 public:
     // Implementation - [SWS_CORE_00611]
-    explicit Exception(ErrorCode err) noexcept
-        : m_errorCode(err)
+    explicit Exception(ErrorCode err) noexcept : m_errorCode(err)
     {
+
     }
-    Exception() = default;
 
     // Implementation - [SWS_CORE_00615]
     Exception(Exception&& other) = default;

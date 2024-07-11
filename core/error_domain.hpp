@@ -27,7 +27,7 @@
 #ifndef THREADPRACTISEYEEAH_ERROR_DOMAIN_HPP
 #define THREADPRACTISEYEEAH_ERROR_DOMAIN_HPP
 
-#include "error_code.hpp"
+#include <core/error_code.hpp>
 #include <cstdint>
 
 namespace ara::core {
@@ -86,7 +86,7 @@ public:
 
 
 private:
-    Idtype m_id;
+    Idtype m_id{};
 
 protected:
     // Implementation - [SWS_CORE_00135]

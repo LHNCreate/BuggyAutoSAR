@@ -31,26 +31,23 @@
 
 #include <core/error_domain.hpp>
 #include <core/exception.hpp>
+
+
 namespace ara::com {
 
 // Implementation - [SWS_CM_11327]
 class ComException : public ara::core::Exception{
 
     // Implementation - [SWS_CM_11328]
-    explicit ComException(ara::core::ErrorCode errorCode) noexcept{
+    explicit ComException(ara::core::ErrorCode errorCode) noexcept : ara::core::Exception(errorCode){
 
     }
 
+private:
+
+    ara::core::ErrorCode errorCode;
+
 };
-
-
-
-
-
-
-
-
-
 
 
 

@@ -19,34 +19,29 @@
  * @file           : error_code.hpp
  * @author         : leehaonan
  * @brief          : 对Autosar_AP_SWS_Core中的ErrorCode进行实现
- * @attention      : 不再赘述Description
  * @date           : 2024/6/25
  * @version        : R23-11
  */
 
 #ifndef THREADPRACTISEYEEAH_ERROR_CODE_HPP
 #define THREADPRACTISEYEEAH_ERROR_CODE_HPP
-#include "error_domain.hpp"
+#include <core/error_domain.hpp>
 #include <string_view>
 #include <type_traits>
 
 namespace ara::core {
 class ErrorCode final
 {
-
 public:
     // Implementation - [SWS_CORE_00512]
-    //todo 暂时封存，另改设计
-//    template<typename EnumT>
-//    explicit ErrorCode(EnumT                        e,
-//                       ErrorDomain::SupportDataType data = ErrorDomain::SupportDataType()) noexcept
-//
-//        : m_errorCodeValue(static_cast<ErrorDomain::CodeType>(e))
-//        , m_supportData(data)
-//    {
-//
-//
-//    }
+    template<typename EnumT>
+    explicit ErrorCode(EnumT                        e,
+                       ErrorDomain::SupportDataType data = ErrorDomain::SupportDataType()) noexcept
+
+        : m_errorCodeValue(static_cast<ErrorDomain::CodeType>(e))
+        , m_supportData(data)
+    {
+    }
 
     // Implementation - [SWS_CORE_00513]
     constexpr ErrorCode(ErrorDomain::CodeType value, const ErrorDomain& domain,
