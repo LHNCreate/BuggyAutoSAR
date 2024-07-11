@@ -3,6 +3,7 @@
 #include <core/Vector.hpp>
 #include <core/result.hpp>
 #include <core/core_error_domain.hpp>
+#include <spdlog/spdlog.h>
 #include <iostream>
 #include <string>
 enum ErrorCodeTest : std::int32_t
@@ -62,6 +63,15 @@ enum class TestEnum {
 };
 
 void testErrorCode(){
+    try {
+        auto errorCode = ara::core::MakeErrorCode(ara::core::CoreErrc::kInvalidArgument,0);
+//        errorCode.setErrorMessage("Hello Error World");
+        errorCode.ThrowAsException();
+    }
+    catch (const std::exception& e) {
+        std::cout<< e.what() << std::endl;
+        spdlog::error("{}", e.what());
+    }
 
 
 }
@@ -75,10 +85,7 @@ int main()
 {
 //    testResult(); pass
 //    testVector(); pass
-
-
-
-
+    testErrorCode();
 
 
     return 0;

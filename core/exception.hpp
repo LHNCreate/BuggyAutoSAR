@@ -53,8 +53,19 @@ public:
     virtual ~Exception() = default;
 
     // Implementation - [SWS_CORE_00612]
+    // todo 补全各个模块报错条件
     const char* what() const noexcept override{
-        return nullptr;
+        std::string modelName = m_errorCode.Domain().Name();
+        static std::string errorMessage;
+        if(!m_errorCode.Message().empty()){
+            errorMessage = m_errorCode.Message();
+            return errorMessage.c_str();
+        }
+        if(modelName == "Core"){
+            errorMessage = "Core Error Code: " + std::to_string(m_errorCode.Value());
+            return errorMessage.c_str();
+        }
+
     }
 
     // Implementation - [SWS_CORE_00613]

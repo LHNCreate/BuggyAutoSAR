@@ -108,6 +108,7 @@ public:
 
     void ThrowAsException(const ErrorCode& errorCode) const noexcept(false) override
     {
+        throw Exception(errorCode);
     }
 };
 
