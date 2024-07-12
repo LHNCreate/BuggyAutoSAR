@@ -27,23 +27,31 @@
 
 #ifndef BUGGYAUTOSAR_SERVICEHANDLETYPE_HPP
 #define BUGGYAUTOSAR_SERVICEHANDLETYPE_HPP
+#include <com/InstanceIdentifier.hpp>
+#include <com/ServiceIdentifierType.hpp>
+#include <cstdint>
 #include <functional>
 #include <vector>
-#include <cstdint>
-#include <com/ServiceIdentifierType.hpp>
 namespace ara::com {
 // Implementation - [SWS_CM_00303]
 struct FindServiceHandle
 {
-    //todo serviceIdentifier && instanceIdentifier
+    InstanceIdentifier m_instanceID;
 
     ServiceIdentifierType m_serviceID;
 
     std::uint32_t uid;
 
-    bool operator==(const FindServiceHandle& other) const = default;
+    bool operator==(const FindServiceHandle& other) const
+    {
+        return (this->m_instanceID == other.m_instanceID) && (this->m_serviceID == other.m_serviceID) && (this->uid == other.uid);
+    }
 
-    bool operator<(const FindServiceHandle& other) const {}
+    bool operator<(const FindServiceHandle& other) const {
+
+        return (this->m_instanceID < other.m_instanceID) || (this->m_serviceID < other.m_serviceID) || (this->uid < other.uid);
+
+    }
 
     FindServiceHandle& operator=(const FindServiceHandle& other) = default;
 
@@ -56,6 +64,8 @@ struct FindServiceHandle
 template<typename T>
 using ServiceHandleContainer = std::vector<T>;
 
+
+// Implementation - [SWS_CM_00383]
 template<typename T>
 using FindServiceHandler =
     std::function<void(ara::com::ServiceHandleContainer<T>, ara::com::FindServiceHandle)>;

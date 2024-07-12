@@ -33,7 +33,6 @@
 #include <string_view>
 
 
-
 namespace ara::com {
 // Implementation - [SWS_CM_00302]
 class InstanceIdentifier
@@ -44,8 +43,7 @@ public:
     static ara::core::Result<InstanceIdentifier> Create(StringView serializedFormat)
     {
         if (serializedFormat.empty()) {
-            // todo ComErrc::kInvalidInstanceIdentifierString shall be returned
-            return ara::core::Result<InstanceIdentifier>::FromError();
+            return ara::core::Result<InstanceIdentifier>::FromError(MakeErrorCode(ComErrc::kInvalidInstanceIdentifierString, 0));
         }
         return ara::core::Result<InstanceIdentifier>::FromValue(
             InstanceIdentifier(serializedFormat));
