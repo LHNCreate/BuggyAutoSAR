@@ -28,7 +28,7 @@
 
 #ifndef BUGGYAUTOSAR_CORE_ERROR_DOMAIN_HPP
 #define BUGGYAUTOSAR_CORE_ERROR_DOMAIN_HPP
-#include <core/error_domain.hpp>
+#include <core/error_code.hpp>
 #include <core/exception.hpp>
 #include <folly/Conv.h>
 #include <folly/FBString.h>
@@ -89,8 +89,6 @@ public:
     // Implementation - [SWS_CORE_05232]
     using Exception = CoreException;
 
-    // Implementation - [SWS_CORE_05241]
-    CoreErrorDomain() noexcept = default;
 
     // Implementation - [SWS_CORE_05242]
     const char* Name() const noexcept override
@@ -110,6 +108,11 @@ public:
     {
         throw Exception(errorCode);
     }
+
+
+private:
+    // Implementation - [SWS_CORE_05241]
+    CoreErrorDomain() noexcept = default;
 };
 
 

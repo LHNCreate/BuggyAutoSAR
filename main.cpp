@@ -66,7 +66,7 @@ void testErrorCode(){
     try {
         auto errorCode = ara::core::MakeErrorCode(ara::core::CoreErrc::kInvalidArgument,0);
 //        errorCode.setErrorMessage("Hello Error World");
-        errorCode.ThrowAsException();
+        errorCode.Domain().ThrowAsException(errorCode);
     }
     catch (const std::exception& e) {
         std::cout<< e.what() << std::endl;
@@ -77,15 +77,11 @@ void testErrorCode(){
 }
 
 
-
-
-
-
 int main()
 {
 //    testResult(); pass
 //    testVector(); pass
-    testErrorCode();
+//    testErrorCode(); pass
 
 
     return 0;

@@ -29,30 +29,30 @@
 #ifndef BUGGYAUTOSAR_COMERRORDOMAIN_HPP
 #define BUGGYAUTOSAR_COMERRORDOMAIN_HPP
 
-#include <core/error_domain.hpp>
+#include <core/error_code.hpp>
 #include <core/exception.hpp>
-
+#include <folly/Conv.h>
 
 namespace ara::com {
 
+using ara::core::ErrorCode;
+using ara::core::ErrorDomain;
+
 // Implementation - [SWS_CM_11327]
-class ComException : public ara::core::Exception{
-
+class ComException : public ara::core::Exception
+{
+public:
     // Implementation - [SWS_CM_11328]
-    explicit ComException(ara::core::ErrorCode errorCode) noexcept : ara::core::Exception(errorCode){
-
+    explicit ComException(ErrorCode errorCode) noexcept
+        : ara::core::Exception(errorCode)
+    {
     }
-
-private:
-
-    ara::core::ErrorCode errorCode;
-
 };
 
 
 
 // Implementation - [SWS_CM_10432]
-enum class ComErrc : ara::core::ErrorDomain::CodeType
+enum class ComErrc : ErrorDomain::CodeType
 {
     kServiceNotAvailable             = 1,    // Service is not available.
     kMaxSamplesExceeded              = 2,    // Application holds more SamplePtrs than commited in Subscribe().
@@ -74,16 +74,61 @@ enum class ComErrc : ara::core::ErrorDomain::CodeType
     kSetHandlerFailure               = 21,   // Failed to register handler.
 };
 
-// Implementation - [SWS_CM_11329]
-class ComErrorDomain final : public ara::core::ErrorDomain
-{
 
+
+
+
+
+
+
+// Implementation - [SWS_CM_11329]
+class ComErrorDomain final : public ErrorDomain
+{
+public:
+
+    static ComErrorDomain& GetInstance() {
+        static ComErrorDomain instance;
+        return instance;
+    }
+
+    // Implementation - [SWS_CM_11336]
     using Errc = ComErrc;
-    // todo ComException
-    using Exception = std::exception;
+
+    // Implementation - [SWS_CM_11337]
+    using Exception = ComException;
+
+    // Implementation - [SWS_CM_11330]
+    // 如果默认构造是delele了，那怎么创建global instance呢
+//    ComErrorDomain() = delete;
+
+    // Implementation - [SWS_CM_11331]
+    const char* Name() const noexcept override
+    {
+        return "Com";
+    }
+
+    // Implementation - [SWS_CM_11332]
+    const char* Message(CodeType errorCode) const noexcept override
+    {
+        static thread_local folly::fbstring message;
+        message = folly::to<folly::fbstring>(errorCode);
+        return message.c_str();
+    }
+
+    // Implementation - [SWS_CM_11333]
+    void ThrowAsException(const ara::core::ErrorCode& errorCode) const
+        noexcept(false) override
+    {
+        throw Exception(errorCode);
+    }
+private:
+    ComErrorDomain() = default;
 };
 
-
+ErrorCode MakeErrorCode(ComErrc code, ErrorDomain::SupportDataType data) noexcept
+{
+    return {static_cast<ErrorDomain::CodeType>(code), ComErrorDomain::GetInstance(), data};
+}
 
 
 
