@@ -6,6 +6,8 @@
 #include <spdlog/spdlog.h>
 #include <iostream>
 #include <string>
+#include <core/InstanceSpecifier.hpp>
+
 enum ErrorCodeTest : std::int32_t
 {
     E1 = 12,
@@ -77,11 +79,52 @@ void testErrorCode(){
 }
 
 
+void testInstanceSpecifier(){
+    // 测试应用程序交互的输入
+    try {
+        std::string validAppInput = "Executable/RootComponent/SubComponent/Port";
+        ara::core::InstanceSpecifier validAppSpecifier(validAppInput);
+        std::cout << "Valid application interaction input accepted: " << validAppInput << std::endl;
+    } catch (const ara::core::CoreException& e) {
+        std::cout << "Failed to accept valid application interaction input: " << e.what() << std::endl;
+    }
+
+    try {
+        std::string invalidAppInput = "Executable/RootComponent/SubComponent/474574754##&%^*&#%^";
+        ara::core::InstanceSpecifier invalidAppSpecifier(invalidAppInput);
+        std::cout << "Invalid application interaction input caught: " << invalidAppInput << std::endl;
+    } catch (const ara::core::CoreException& e) {
+        std::cout << "Correctly caught error for invalid application interaction input: " << e.what() << std::endl;
+    }
+
+    // 测试功能集群交互的输入
+    try {
+        std::string validFuncInput = "TopLevelPackage/SubPackage/MappingElement";
+        ara::core::InstanceSpecifier validFuncSpecifier(validFuncInput);
+        std::cout << "Valid functional cluster interaction input accepted: " << validFuncInput << std::endl;
+    } catch (const ara::core::CoreException& e) {
+        std::cout << "Failed to accept valid functional cluster interaction input: " << e.what() << std::endl;
+    }
+
+    try {
+        std::string invalidFuncInput = "TopLevelPackage/SubPackage";
+        ara::core::InstanceSpecifier invalidFuncSpecifier(invalidFuncInput);
+        std::cout << "Invalid functional cluster interaction input caught: " << invalidFuncInput << std::endl;
+    } catch (const ara::core::CoreException& e) {
+        std::cout << "Correctly caught error for invalid functional cluster interaction input: " << e.what() << std::endl;
+    }
+
+
+}
+
+
+
 int main()
 {
 //    testResult(); pass
 //    testVector(); pass
 //    testErrorCode(); pass
+    testInstanceSpecifier();
 
 
     return 0;
