@@ -31,10 +31,14 @@
 #include <string>
 #include <string_view>
 
+
+namespace ara::com {
+
 // Implementation - [SWS_CM_01010]
 class ServiceIdentifierType
 {
     using StringView = std::string_view;
+
 public:
     explicit constexpr ServiceIdentifierType(const std::string& id)
         : serviceID(id)
@@ -64,6 +68,9 @@ public:
 private:
     StringView serviceID;
 };
+
+}   // namespace ara::com
+
 
 
 

@@ -1,4 +1,3 @@
-
 #include <core/Optional.hpp>
 #include <core/Vector.hpp>
 #include <core/result.hpp>
@@ -8,11 +7,22 @@
 #include <string>
 #include <core/InstanceSpecifier.hpp>
 
+
+
+
+
+
+
+
 enum ErrorCodeTest : std::int32_t
 {
     E1 = 12,
     E2
 };
+
+
+
+
 
 
 void testResult()

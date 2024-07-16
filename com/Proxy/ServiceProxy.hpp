@@ -28,16 +28,49 @@
 #define BUGGYAUTOSAR_SERVICEPROXY_HPP
 
 #include "core/error_code.hpp"
+#include <com/ServiceHandleType.hpp>
+#include <core/result.hpp>
+#include <spdlog/spdlog.h>
+
+namespace ara::com::proxy {
 
 class ServiceProxy
 {
+    class HandleType
+    {
+    public:
+        bool operator==(const HandleType& other) const{
+            return (this->GetInstanceID() == other.GetInstanceID());
+        }
 
+        bool operator<(const HandleType& other) const{
+            return (this->GetInstanceID() < other.GetInstanceID());
+        }
 
+        virtual const ara::com::InstanceIdentifier& GetInstanceID() const = 0;
 
+        // Implementation - [SWS_CM_00317]
+        HandleType (const HandleType&) = default;
+        HandleType& operator=(const HandleType&) = default;
 
+        // Implementation - [SWS_CM_11371]
+        virtual ~HandleType() noexcept = default;
+
+        // Implementation - [SWS_CM_00318]
+        HandleType (HandleType&&) = default;
+        HandleType& operator=(HandleType&&) = default;
+
+        // Implementation - [SWS_CM_00349]
+        HandleType() = delete;
+
+    };
+    virtual ara::core::Result<ServiceHandleContainer<HandleType>> FindService(InstanceIdentifier instance) = 0;
 
 
 };
+
+}   // namespace ara::com::proxy
+
 
 
 
