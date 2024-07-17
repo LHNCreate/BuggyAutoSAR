@@ -27,8 +27,9 @@
 #ifndef BUGGYAUTOSAR_EXCEPTION_HPP
 #define BUGGYAUTOSAR_EXCEPTION_HPP
 
-#include <exception>
 #include <core/error_code.hpp>
+#include <exception>
+#include <string>
 namespace ara::core {
 
 class ErrorCode;

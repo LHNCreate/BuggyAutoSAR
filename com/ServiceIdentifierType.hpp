@@ -40,7 +40,7 @@ class ServiceIdentifierType
     using StringView = std::string_view;
 
 public:
-    explicit constexpr ServiceIdentifierType(const std::string& id)
+    explicit ServiceIdentifierType(const std::string& id)
         : serviceID(id)
     {}
 

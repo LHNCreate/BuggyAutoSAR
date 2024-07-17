@@ -20,7 +20,7 @@
  * @author         : leehaonan
  * @brief          : 对Proxy概念进行实现
  * @version        : R23-11
- * @date           : 2024/7/4
+ * @date           : 2024/7/16
  *
  */
 
@@ -34,38 +34,18 @@
 
 namespace ara::com::proxy {
 
+template <typename Derived>
 class ServiceProxy
 {
-    class HandleType
-    {
-    public:
-        bool operator==(const HandleType& other) const{
-            return (this->GetInstanceID() == other.GetInstanceID());
-        }
 
-        bool operator<(const HandleType& other) const{
-            return (this->GetInstanceID() < other.GetInstanceID());
-        }
 
-        virtual const ara::com::InstanceIdentifier& GetInstanceID() const = 0;
 
-        // Implementation - [SWS_CM_00317]
-        HandleType (const HandleType&) = default;
-        HandleType& operator=(const HandleType&) = default;
-
-        // Implementation - [SWS_CM_11371]
-        virtual ~HandleType() noexcept = default;
-
-        // Implementation - [SWS_CM_00318]
-        HandleType (HandleType&&) = default;
-        HandleType& operator=(HandleType&&) = default;
-
-        // Implementation - [SWS_CM_00349]
-        HandleType() = delete;
-
-    };
-    virtual ara::core::Result<ServiceHandleContainer<HandleType>> FindService(InstanceIdentifier instance) = 0;
-
+public:
+    template <typename HandleType>
+    ara::core::Result<ServiceHandleContainer<HandleType>> FindService(InstanceIdentifier instance){
+        spdlog::info("FindServiceImpl: {}", instance.ToString());
+        return static_cast<Derived*>(this)->FindServiceImpl(instance);
+    }
 
 };
 
