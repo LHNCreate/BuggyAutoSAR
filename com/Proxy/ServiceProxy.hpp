@@ -29,24 +29,54 @@
 
 #include "core/error_code.hpp"
 #include <com/ServiceHandleType.hpp>
+#include <core/InstanceSpecifier.hpp>
 #include <core/result.hpp>
 #include <spdlog/spdlog.h>
 
 namespace ara::com::proxy {
 
-template <typename Derived>
+template<typename Derived>
 class ServiceProxy
 {
 
 
 
 public:
-    template <typename HandleType>
-    ara::core::Result<ServiceHandleContainer<HandleType>> FindService(InstanceIdentifier instance){
-        spdlog::info("FindServiceImpl: {}", instance.ToString());
-        return static_cast<Derived*>(this)->FindServiceImpl(instance);
+    // Implementation - [SWS_CM_00122]
+    template<typename HandleType>
+    ara::core::Result<ServiceHandleContainer<HandleType>> FindService(InstanceIdentifier identifier)
+    {
+        // todo 完成具体功能逻辑
+        spdlog::info("FindServiceImpl: {}", identifier.ToString());
+        return static_cast<Derived*>(this)->FindServiceImpl(identifier);
     }
 
+    // Implementation - [SWS_CM_00622]
+    template<typename HandleType>
+    ara::core::Result<ServiceHandleContainer<HandleType>> FindService(ara::core::InstanceSpecifier specifier)
+    {
+        // todo
+        return static_cast<Derived*>(this)->FindServiceImpl(specifier);
+    }
+
+
+    // Implementation - [SWS_CM_00123]
+    template<typename HandleType>
+    ara::core::Result<FindServiceHandle> StartFindService(FindServiceHandler<HandleType> handler, InstanceIdentifier identifier)
+    {
+        // todo
+        return static_cast<Derived*>(this)->StartFindServiceImpl(handler, identifier);
+    }
+
+    // Implementation - [SWS_CM_11352]
+    template<typename HandleType, typename ExecutorT>
+    ara::core::Result<FindServiceHandle> StartFindService(FindServiceHandler<HandleType> handler,
+                                                          InstanceIdentifier             identifier,
+                                                          ExecutorT&&                    executor)
+    {
+        // todo
+        return static_cast<Derived*>(this)->StartFindServiceImpl(handler, identifier, executor);
+    }
 };
 
 }   // namespace ara::com::proxy
