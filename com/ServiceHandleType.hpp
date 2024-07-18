@@ -73,6 +73,10 @@ using FindServiceHandler =
     std::function<void(ara::com::ServiceHandleContainer<T>, ara::com::FindServiceHandle)>;
 
 
+// Implementation - [SWS_CM_00309]
+using EventReceiveHandler = std::function<void()>;
+
+
 }   // namespace ara::com
 
 

@@ -15,35 +15,46 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
+
+
+
+
 /**
- * @file           : ServiceHandler.hpp
+ * @file           : MethodDataTypes.hpp
  * @author         : leehaonan
- * @brief          : None
- * @attention      : None
- * @date           : 2024/7/4
+ * @brief          : Method Related Data Types
+ * @version        : R23-11
+ * @date           : 2024/7/18
  *
  */
 
-#ifndef BUGGYAUTOSAR_SERVICEHANDLER_HPP
-#define BUGGYAUTOSAR_SERVICEHANDLER_HPP
+#ifndef BUGGYAUTOSAR_METHODDATATYPES_HPP
+#define BUGGYAUTOSAR_METHODDATATYPES_HPP
 
+#include <cstdint>
+namespace ara::com {
 
-namespace ara::com{
+// Implementation - [SWS_CM_00198]
+/**
+ * @enum kPoll - polling mode
+ *
+ * @enum kEvent - Event-driven, concurrent
+ *
+ * @enum kEventSingleThread - Event-driven, sequential
+ *
+**/
 
-class ServiceHandler
+enum class MethodCallProcessingMode : std::uint8_t
 {
-
-
-
+    kPoll,
+    kEvent,
+    kEventSingleThread
 };
 
-
-
-
-}
+}   // namespace ara::com
 
 
 
 
 
-#endif   // BUGGYAUTOSAR_SERVICEHANDLER_HPP
+#endif   // BUGGYAUTOSAR_METHODDATATYPES_HPP
