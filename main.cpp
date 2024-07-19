@@ -8,7 +8,7 @@
 #include <iostream>
 #include <spdlog/spdlog.h>
 #include <string>
-
+#include <com/Event.hpp>
 
 
 
@@ -55,6 +55,17 @@ public:
         // Implementation - [SWS_CM_00349]
         HandleType() = delete;
     };
+
+    class testEvent : public ara::com::proxy::events::Event<testEvent>{
+
+    public:
+        ara::core::Result<void> SetReceiveHandler(const ara::com::EventReceiveHandler& handler){
+
+        }
+
+    };
+
+
 
     ara::core::Result<ara::com::ServiceHandleContainer<HandleType>> FindServiceImpl(ara::com::InstanceIdentifier instance)
     {
@@ -184,7 +195,12 @@ void testProxyClassWithCrtp()
     ara::com::InstanceIdentifier                                   id("Executable/RootComponent/SubComponent/Port");
     std::unique_ptr<ara::com::proxy::ServiceProxy<testProxyClass>> proxy = std::make_unique<ara::com::proxy::ServiceProxy<testProxyClass>>();
 //    std::unique_ptr<testProxyClass> proxy = std::make_unique<testProxyClass>();
-    proxy->FindService<testProxyClass::HandleType>(id);
+    auto result = proxy->FindService<testProxyClass::HandleType>(id);
+    auto container = result.Value();
+    for (auto& handle : container) {
+        auto instanceId = handle.GetInstanceID();
+        spdlog::warn("{}", instanceId.ToString());
+    }
 }
 
 

@@ -39,15 +39,12 @@ template<typename Derived>
 class ServiceProxy
 {
 
-
-
 public:
     // Implementation - [SWS_CM_00122]
     template<typename HandleType>
     ara::core::Result<ServiceHandleContainer<HandleType>> FindService(InstanceIdentifier identifier)
     {
         // todo 完成具体功能逻辑
-        spdlog::info("FindServiceImpl: {}", identifier.ToString());
         return static_cast<Derived*>(this)->FindServiceImpl(identifier);
     }
 
@@ -78,6 +75,8 @@ public:
         return static_cast<Derived*>(this)->StartFindServiceImpl(handler, identifier, executor);
     }
 };
+
+
 
 }   // namespace ara::com::proxy
 

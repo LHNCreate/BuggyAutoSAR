@@ -214,7 +214,7 @@ public:
     // Implementation - [SWS_CORE_00775]
     T& Value() &
     {
-        if (HasValue()) {
+        if (!HasValue()) {
             //[SWS_CORE_00021] - Violation is non-recoverable.
             // TODO: LOG PRINT
             std::terminate();

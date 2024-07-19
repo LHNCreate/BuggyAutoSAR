@@ -29,6 +29,10 @@
 
 #include <com/ServiceHandleType.hpp>
 #include <core/result.hpp>
+#include <unordered_map>
+#include <core/String.hpp>
+#include <mutex>
+#include <spdlog/spdlog.h>
 namespace ara::com::proxy::events {
 
 
@@ -39,6 +43,8 @@ public:
     // Implementation - [SWS_CM_00181]
     ara::core::Result<void> SetReceiveHandler(ara::com::EventReceiveHandler handler)
     {
+        // push handler into container
+        RegisterReceiveHandler(handler);
         return static_cast<Derived*>(this)->SetReceiveHandlerImpl(handler);
     }
 
@@ -67,6 +73,26 @@ public:
     ara::core::Result<std::size_t> GetNewSamples(F&& f,std::size_t maxNumberOfSamples = std::numeric_limits<std::size_t>::max()){
         return static_cast<Derived*>(this)->GetNewSamplesImpl(std::forward<F>(f),maxNumberOfSamples);
     }
+
+    ara::core::String GetName(){
+        return static_cast<Derived*>(this)->GetNameImpl();
+    }
+
+    // vendor<leehaonan> - specific
+    ara::core::Result<void> RegisterReceiveHandler(const ara::com::EventReceiveHandler& handler){
+        std::lock_guard<std::mutex> lock(handlersMapMutex);
+        spdlog::debug("RegisterReceiveHandler: {}", GetName());
+        handlersMap[GetName()].emplace_back(handler);
+    }
+
+
+
+
+private:
+std::unordered_map<ara::core::String,std::vector<ara::com::EventReceiveHandler>> handlersMap;
+std::mutex handlersMapMutex;
+
+
 };
 
 }   // namespace ara::com::proxy::events
