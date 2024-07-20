@@ -385,6 +385,7 @@ private:
 template<typename E>
 class Result<void, E> final
 {
+public:
     // Implementation - [SWS_CORE_00811]
     using value_type = void;
 

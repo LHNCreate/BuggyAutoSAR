@@ -20,7 +20,7 @@
 /**
  * @file           : ServiceIdentifierType.hpp
  * @author         : leehaonan
- * @brief          : 实现ServiceIdentifierType
+ * @brief          : Implement ServiceIdentifierType
  * @version        : R23-11
  * @date           : 2024/7/4
  *
@@ -61,7 +61,7 @@ public:
 
     ServiceIdentifierType& operator=(const ServiceIdentifierType& other) = default;
 
-    // 我认为这里其实就是个Get的作用，为什么要写成ToString呢?
+
     StringView ToString() const { return this->serviceID; }
 
 

@@ -27,13 +27,64 @@
 #ifndef BUGGYAUTOSAR_EVENT_HPP
 #define BUGGYAUTOSAR_EVENT_HPP
 
+#include <bitset>
 #include <com/ServiceHandleType.hpp>
-#include <core/result.hpp>
-#include <unordered_map>
 #include <core/String.hpp>
+#include <core/result.hpp>
 #include <mutex>
 #include <spdlog/spdlog.h>
+#include <stack>
+#include <unordered_map>
 namespace ara::com::proxy::events {
+
+class IndexPool
+{
+public:
+    IndexPool()
+    {
+        for (uint8_t i = 0; i < maxIndex; ++i) {
+            freeIndices.push(i);
+        }
+    }
+    // 获取一个可用的索引
+    std::optional<uint8_t> acquireIndex()
+    {
+        if (freeIndices.empty()) {
+            return std::nullopt;   // 索引已满
+        }
+        uint8_t index = freeIndices.top();
+        freeIndices.pop();
+        indexInUse.set(index, true);
+        return index;
+    }
+    // 释放一个索引
+    void releaseIndex(uint8_t index)
+    {
+        if (index < maxIndex && indexInUse.test(index)) {
+            freeIndices.push(index);
+            indexInUse.set(index, false);
+        }
+    }
+
+
+private:
+    static constexpr uint8_t  maxIndex = 63;   // handler 索引大小最多不可超过63
+    std::stack<uint8_t>       freeIndices;
+    std::bitset<maxIndex + 1> indexInUse;
+};   // Index pool
+
+
+// 处理程序包装结构体，包含std::function和唯一ID
+struct HandlerWrapper
+{
+    uint8_t                       index;
+    ara::com::EventReceiveHandler handler;
+
+    bool operator==(const HandlerWrapper& other) const
+    {
+        return index == other.index;
+    }
+};
 
 
 template<typename Derived>
@@ -41,11 +92,11 @@ class Event
 {
 public:
     // Implementation - [SWS_CM_00181]
-    ara::core::Result<void> SetReceiveHandler(ara::com::EventReceiveHandler handler)
+    ara::core::Result<HandlerWrapper> SetReceiveHandler(ara::com::EventReceiveHandler handler)
     {
         // push handler into container
-        RegisterReceiveHandler(handler);
-        return static_cast<Derived*>(this)->SetReceiveHandlerImpl(handler);
+        auto result = RegisterReceiveHandler(handler);
+        return static_cast<Derived*>(this)->SetReceiveHandlerImpl(result.Value());
     }
 
 
@@ -53,14 +104,18 @@ public:
     template<typename ExcutorT>
     ara::core::Result<void> SetReceiveHandler(ara::com::EventReceiveHandler handler, ExcutorT&& executor)
     {
-            return static_cast<Derived*>(this)->SetReceiveHandlerImpl(handler, std::forward<ExcutorT>(executor));
+        return static_cast<Derived*>(this)->SetReceiveHandlerImpl(handler, std::forward<ExcutorT>(executor));
     }
 
     // Implementation - [SWS_CM_00183]
-    ara::core::Result<void> UnsetReceiveHandler()
+    ara::core::Result<void> UnsetReceiveHandler(HandlerWrapper wrapper)
     {
-        return static_cast<Derived*>(this)->UnsetReceiveHandlerImpl();
+        auto result = UnRegisterReceiveHandler(wrapper);
+        // update available handler list
+        return static_cast<Derived*>(this)->UnsetReceiveHandlerImpl(result.Value());
     }
+
+
 
 
     // Implementation - [SWS_CM_00701]
@@ -68,32 +123,52 @@ public:
      * @param f -  void(ara::com::SamplePtr<SampleType const>)
      * @see  SWS_CM_00306 for SamplePtr
      *
-    **/
+     **/
     template<typename F>
-    ara::core::Result<std::size_t> GetNewSamples(F&& f,std::size_t maxNumberOfSamples = std::numeric_limits<std::size_t>::max()){
-        return static_cast<Derived*>(this)->GetNewSamplesImpl(std::forward<F>(f),maxNumberOfSamples);
-    }
-
-    ara::core::String GetName(){
-        return static_cast<Derived*>(this)->GetNameImpl();
+    ara::core::Result<std::size_t> GetNewSamples(F&& f, std::size_t maxNumberOfSamples = std::numeric_limits<std::size_t>::max())
+    {
+        return static_cast<Derived*>(this)->GetNewSamplesImpl(std::forward<F>(f), maxNumberOfSamples);
     }
 
     // vendor<leehaonan> - specific
-    ara::core::Result<void> RegisterReceiveHandler(const ara::com::EventReceiveHandler& handler){
+    ara::core::Result<HandlerWrapper> RegisterReceiveHandler(const ara::com::EventReceiveHandler& handler)
+    {
         std::lock_guard<std::mutex> lock(handlersMapMutex);
-        spdlog::debug("RegisterReceiveHandler: {}", GetName());
-        handlersMap[GetName()].emplace_back(handler);
+        HandlerWrapper              handlerWrapper;
+
+        // 从引索池拿到唯一引索
+        auto indexOpt = indexPool.acquireIndex();
+        if (!indexOpt.has_value()) {
+            // 无法获取索引则返回错误码
+            return ara::core::Result<HandlerWrapper>::FromError(MakeErrorCode(ara::com::ComErrc::kIndexUnavailable, 0));
+        }
+        uint8_t index          = indexOpt.value();
+        handlerWrapper.index   = index;
+        handlerWrapper.handler = handler;
+        handlerlists.emplace_back(handlerWrapper);
+        return ara::core::Result<HandlerWrapper>(handlerWrapper);
+
     }
 
+    // vendor<leehaonan> - specific
+    ara::core::Result<ara::core::Vector<HandlerWrapper>> UnRegisterReceiveHandler(const HandlerWrapper& wrapper)
+    {
+        std::lock_guard<std::mutex> lock(handlersMapMutex);
+        handlerlists.erase(std::remove_if(handlerlists.begin(), handlerlists.end(),
+                           [&wrapper](const HandlerWrapper& h) { return h == wrapper; }),handlerlists.end()
+        );
+        return ara::core::Result<ara::core::Vector<HandlerWrapper>>(handlerlists);
+    }
 
 
 
 private:
-std::unordered_map<ara::core::String,std::vector<ara::com::EventReceiveHandler>> handlersMap;
-std::mutex handlersMapMutex;
-
-
+    ara::core::Vector<HandlerWrapper>  handlerlists;
+    std::mutex                         handlersMapMutex;
+    ara::com::proxy::events::IndexPool indexPool;
 };
+
+
 
 }   // namespace ara::com::proxy::events
 

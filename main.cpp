@@ -1,3 +1,4 @@
+#include <com/Event.hpp>
 #include <com/Proxy/ServiceProxy.hpp>
 #include <com/ServiceHandleType.hpp>
 #include <core/InstanceSpecifier.hpp>
@@ -8,12 +9,13 @@
 #include <iostream>
 #include <spdlog/spdlog.h>
 #include <string>
-#include <com/Event.hpp>
 
 
 
 class testProxyClass : public ara::com::proxy::ServiceProxy<testProxyClass>
 {
+    friend class ara::com::proxy::ServiceProxy<testProxyClass>;
+
 public:
     class HandleType
     {
@@ -56,17 +58,41 @@ public:
         HandleType() = delete;
     };
 
-    class testEvent : public ara::com::proxy::events::Event<testEvent>{
 
-    public:
-        ara::core::Result<void> SetReceiveHandler(const ara::com::EventReceiveHandler& handler){
+    class testEvent : public ara::com::proxy::events::Event<testEvent>
+    {
+        friend class ara::com::proxy::events::Event<testEvent>;
 
+    protected:
+        ara::core::Result<ara::com::proxy::events::HandlerWrapper> SetReceiveHandlerImpl(const ara::com::proxy::events::HandlerWrapper& handler)
+        {
+            m_handlers.emplace_back(handler);
+            return ara::core::Result<ara::com::proxy::events::HandlerWrapper>(handler);
         }
 
-    };
+        ara::core::Result<void> UnsetReceiveHandlerImpl(const ara::core::Vector<ara::com::proxy::events::HandlerWrapper>& updatedHandlers)
+        {
+            m_handlers = updatedHandlers;
+            return {};
+        }
+
+
+    public:
+        // use to test
+        ara::core::Vector<ara::com::proxy::events::HandlerWrapper>& GetHandlers()
+        {
+            return m_handlers;
+        }
+
+    private:
+        ara::core::Vector<ara::com::proxy::events::HandlerWrapper> m_handlers;
+    };   // testEvent
 
 
 
+
+
+protected:
     ara::core::Result<ara::com::ServiceHandleContainer<HandleType>> FindServiceImpl(ara::com::InstanceIdentifier instance)
     {
         HandleType                                   hd(instance);
@@ -190,17 +216,43 @@ void testInstanceSpecifier()
 }
 
 
-void testProxyClassWithCrtp()
+void testProxyClassWithCrtp1()
 {
-    ara::com::InstanceIdentifier                                   id("Executable/RootComponent/SubComponent/Port");
-    std::unique_ptr<ara::com::proxy::ServiceProxy<testProxyClass>> proxy = std::make_unique<ara::com::proxy::ServiceProxy<testProxyClass>>();
-//    std::unique_ptr<testProxyClass> proxy = std::make_unique<testProxyClass>();
-    auto result = proxy->FindService<testProxyClass::HandleType>(id);
+    ara::com::InstanceIdentifier id("Executable/RootComponent/SubComponent/Port");
+    // 创建子类对象，调用父类方法
+    std::unique_ptr<testProxyClass> proxy = std::make_unique<testProxyClass>();
+    proxy->FindService<testProxyClass::HandleType>(id);
+    auto result    = proxy->FindService<testProxyClass::HandleType>(id);
     auto container = result.Value();
     for (auto& handle : container) {
         auto instanceId = handle.GetInstanceID();
         spdlog::warn("{}", instanceId.ToString());
     }
+}
+
+void testEvent()
+{
+    std::unique_ptr<testProxyClass::testEvent> testEvent1 = std::make_unique<testProxyClass::testEvent>();
+
+    ara::com::EventReceiveHandler handler0 = []() {
+        spdlog::info("this is A");
+    };
+    ara::com::EventReceiveHandler handler1 = []() {
+        spdlog::info("this is B");
+    };
+    auto A = testEvent1->SetReceiveHandler(handler0).Value();
+    auto B = testEvent1->SetReceiveHandler(handler1).Value();
+
+    auto& handlers = testEvent1->GetHandlers();
+    for (auto& hw : handlers) {
+        hw.handler();
+    }
+
+    testEvent1->UnsetReceiveHandler(A);
+    for (auto& hw : handlers) {
+        hw.handler();
+    }
+
 }
 
 
@@ -211,7 +263,10 @@ int main()
     //    testVector(); pass
     //    testErrorCode(); pass
     //    testInstanceSpecifier(); pass
-        testProxyClassWithCrtp();
+    //    testProxyClassWithCrtp1(); pass
+    testEvent();
+
+
 
 
 

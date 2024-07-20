@@ -72,6 +72,7 @@ enum class ComErrc : ErrorDomain::CodeType
     kCouldNotExecute                 = 19,   // Command could not be executed in provided Execution Context.
     kInvalidInstanceIdentifierString = 20,   // Given InstanceIdentifier string is corrupted or non-compliant.
     kSetHandlerFailure               = 21,   // Failed to register handler.
+    kIndexUnavailable               = 22    // vendor<leehaonan>-specific 无法从引索池获取引索
 };
 
 
@@ -85,8 +86,8 @@ enum class ComErrc : ErrorDomain::CodeType
 class ComErrorDomain final : public ErrorDomain
 {
 public:
-
-    static ComErrorDomain& GetInstance() {
+    static ComErrorDomain& GetInstance()
+    {
         static ComErrorDomain instance;
         return instance;
     }
@@ -99,7 +100,7 @@ public:
 
     // Implementation - [SWS_CM_11330]
     // 如果默认构造是delele了，那怎么创建global instance呢
-//    ComErrorDomain() = delete;
+    //    ComErrorDomain() = delete;
 
     // Implementation - [SWS_CM_11331]
     const char* Name() const noexcept override
@@ -121,6 +122,7 @@ public:
     {
         throw Exception(errorCode);
     }
+
 private:
     ComErrorDomain() = default;
 };
