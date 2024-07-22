@@ -31,6 +31,7 @@
 #include <com/ServiceHandleType.hpp>
 #include <core/String.hpp>
 #include <core/result.hpp>
+#include <folly/AtomicHashMap.h>
 #include <mutex>
 #include <spdlog/spdlog.h>
 #include <stack>
@@ -40,15 +41,15 @@ namespace ara::com::proxy::events {
 class IndexPool
 {
 public:
-    IndexPool()
+    static IndexPool& GetInstance()
     {
-        for (uint8_t i = 0; i < maxIndex; ++i) {
-            freeIndices.push(i);
-        }
+        static IndexPool instance;
+        return instance;
     }
     // 获取一个可用的索引
     std::optional<uint8_t> acquireIndex()
     {
+        std::lock_guard<std::mutex> lock(indexInUseMutex);
         if (freeIndices.empty()) {
             return std::nullopt;   // 索引已满
         }
@@ -60,6 +61,7 @@ public:
     // 释放一个索引
     void releaseIndex(uint8_t index)
     {
+        std::lock_guard<std::mutex> lock(indexInUseMutex);
         if (index < maxIndex && indexInUse.test(index)) {
             freeIndices.push(index);
             indexInUse.set(index, false);
@@ -68,10 +70,68 @@ public:
 
 
 private:
+    IndexPool()
+    {
+        for (uint8_t i = 0; i < maxIndex; ++i) {
+            freeIndices.push(i);
+        }
+    }
     static constexpr uint8_t  maxIndex = 63;   // handler 索引大小最多不可超过63
     std::stack<uint8_t>       freeIndices;
     std::bitset<maxIndex + 1> indexInUse;
+    std::mutex                indexInUseMutex;
 };   // Index pool
+
+
+//
+class IndexPoolNoneBlock
+{
+public:
+//    static IndexPoolNoneBlock& GetInstance()
+//    {
+//        static IndexPoolNoneBlock instance;
+//        return instance;
+//    }
+    IndexPoolNoneBlock()
+        : indexMap(maxIndex + 1)
+    {
+        for (uint8_t i = 0; i <= maxIndex; ++i) {
+            indexMap.insert(std::make_pair(i, false));
+        }
+    };
+
+
+    // 获取一个可用的索引
+    std::optional<uint8_t> acquireIndex()
+    {
+        for (auto& kv : indexMap) {
+            bool expected = false;
+            if (std::atomic_compare_exchange_strong(
+                    reinterpret_cast<std::atomic<bool>*>(&kv.second),
+                    &expected,
+                    true)) {
+                return kv.first;
+            }
+        }
+        return std::nullopt;   // 索引已满
+    }
+
+    // 释放一个索引
+    void releaseIndex(uint8_t index)
+    {
+        if (index <= maxIndex) {
+            auto it = indexMap.find(index);
+            if (it != indexMap.end()) {
+                std::atomic_store(reinterpret_cast<std::atomic<bool>*>(&it->second), false);
+            }
+        }
+    }
+
+private:
+    static constexpr uint8_t            maxIndex = 63;   // handler 索引大小最多不可超过63
+    folly::AtomicHashMap<uint8_t, bool> indexMap;
+};
+
 
 
 // 处理程序包装结构体，包含std::function和唯一ID
@@ -94,6 +154,7 @@ public:
     // Implementation - [SWS_CM_00181]
     ara::core::Result<HandlerWrapper> SetReceiveHandler(ara::com::EventReceiveHandler handler)
     {
+        std::lock_guard<std::mutex> lock(handlersMapMutex);
         // push handler into container
         auto result = RegisterReceiveHandler(handler);
         return static_cast<Derived*>(this)->SetReceiveHandlerImpl(result.Value());
@@ -110,7 +171,8 @@ public:
     // Implementation - [SWS_CM_00183]
     ara::core::Result<void> UnsetReceiveHandler(HandlerWrapper wrapper)
     {
-        auto result = UnRegisterReceiveHandler(wrapper);
+        std::lock_guard<std::mutex> lock(handlersMapMutex);
+        auto                        result = UnRegisterReceiveHandler(wrapper);
         // update available handler list
         return static_cast<Derived*>(this)->UnsetReceiveHandlerImpl(result.Value());
     }
@@ -133,11 +195,10 @@ public:
     // vendor<leehaonan> - specific
     ara::core::Result<HandlerWrapper> RegisterReceiveHandler(const ara::com::EventReceiveHandler& handler)
     {
-        std::lock_guard<std::mutex> lock(handlersMapMutex);
-        HandlerWrapper              handlerWrapper;
+        HandlerWrapper handlerWrapper;
 
         // 从引索池拿到唯一引索
-        auto indexOpt = indexPool.acquireIndex();
+        auto indexOpt = IndexPool::GetInstance().acquireIndex();
         if (!indexOpt.has_value()) {
             // 无法获取索引则返回错误码
             return ara::core::Result<HandlerWrapper>::FromError(MakeErrorCode(ara::com::ComErrc::kIndexUnavailable, 0));
@@ -147,16 +208,13 @@ public:
         handlerWrapper.handler = handler;
         handlerlists.emplace_back(handlerWrapper);
         return ara::core::Result<HandlerWrapper>(handlerWrapper);
-
     }
 
     // vendor<leehaonan> - specific
     ara::core::Result<ara::core::Vector<HandlerWrapper>> UnRegisterReceiveHandler(const HandlerWrapper& wrapper)
     {
-        std::lock_guard<std::mutex> lock(handlersMapMutex);
-        handlerlists.erase(std::remove_if(handlerlists.begin(), handlerlists.end(),
-                           [&wrapper](const HandlerWrapper& h) { return h == wrapper; }),handlerlists.end()
-        );
+        IndexPool::GetInstance().releaseIndex(wrapper.index);
+        handlerlists.erase(std::remove_if(handlerlists.begin(), handlerlists.end(), [&wrapper](const HandlerWrapper& h) { return h == wrapper; }), handlerlists.end());
         return ara::core::Result<ara::core::Vector<HandlerWrapper>>(handlerlists);
     }
 
@@ -165,7 +223,6 @@ public:
 private:
     ara::core::Vector<HandlerWrapper>  handlerlists;
     std::mutex                         handlersMapMutex;
-    ara::com::proxy::events::IndexPool indexPool;
 };
 
 

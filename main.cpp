@@ -6,10 +6,11 @@
 #include <core/Vector.hpp>
 #include <core/core_error_domain.hpp>
 #include <core/result.hpp>
+#include <folly/Benchmark.h>
+#include <folly/init/Init.h>
 #include <iostream>
 #include <spdlog/spdlog.h>
 #include <string>
-
 
 
 class testProxyClass : public ara::com::proxy::ServiceProxy<testProxyClass>
@@ -252,8 +253,101 @@ void testEvent()
     for (auto& hw : handlers) {
         hw.handler();
     }
-
 }
+
+
+namespace benchmark {
+
+ara::com::EventReceiveHandler handler0 = []() {
+    spdlog::info("this is A");
+};
+
+void Benchmark_IndexPool(size_t numThreads, size_t iterations)
+{
+    using namespace folly;
+    std::unique_ptr<testProxyClass::testEvent> testEvent1 = std::make_unique<testProxyClass::testEvent>();
+    auto                                       worker     = [&](int) {
+        for (size_t i = 0; i < iterations; ++i) {
+            auto A = testEvent1->SetReceiveHandler(handler0).Value();
+            testEvent1->UnsetReceiveHandler(A);
+            //            std::optional<uint8_t> index = pool.acquireIndex();
+            //            if (index) {
+            //                pool.releaseIndex(index.value());
+            //            }else {
+            //                std::cerr << "Error: Failed to acquire index" << std::endl;
+            //            }
+        }
+    };
+
+    std::vector<std::thread> threads;
+    for (size_t i = 0; i < numThreads; ++i) {
+        threads.emplace_back(worker, i);
+    }
+    for (auto& thread : threads) {
+        if (thread.joinable()) {
+            thread.join();
+        }
+    }
+}
+
+void Benchmark_IndexPoolNonBlock(size_t numThreads, size_t iterations){
+     ara::com::proxy::events::IndexPoolNoneBlock pool;
+    auto worker = [&](int) {
+        for (size_t i = 0; i < iterations; ++i) {
+            std::optional<uint8_t> index = pool.acquireIndex();
+            if (index) {
+                pool.releaseIndex(*index);
+            } else {
+                std::cerr << "Error: Failed to acquire index" << std::endl;
+            }
+        }
+    };
+
+    std::vector<std::thread> threads;
+    for (size_t i = 0; i < numThreads; ++i) {
+        threads.emplace_back(worker, i);
+    }
+
+    for (auto& thread : threads) {
+        if (thread.joinable()) {
+            thread.join();
+        }
+    }
+}
+
+
+
+
+
+
+
+// 定义基准测试用例
+
+BENCHMARK(BM_IndexPool_100_Threads_1)
+{
+    Benchmark_IndexPool(50, 100);
+}
+
+BENCHMARK(BM_IndexPoolNonBlock_100_Threads_1)
+{
+    Benchmark_IndexPoolNonBlock(50, 100);
+}
+
+
+// BENCHMARK(BM_IndexPool_16_Threads_100) {
+//     Benchmark_IndexPool(16, 100);
+// }
+// BENCHMARK(BM_IndexPool_28_Threads_100) {
+//     Benchmark_IndexPool(28, 100);
+// }
+// BENCHMARK(BM_IndexPool_100_Threads_100) {
+//     Benchmark_IndexPool(100, 100);
+// }
+
+BENCHMARK_DRAW_LINE();
+
+
+}   // namespace benchmark
 
 
 
@@ -264,7 +358,10 @@ int main()
     //    testErrorCode(); pass
     //    testInstanceSpecifier(); pass
     //    testProxyClassWithCrtp1(); pass
-    testEvent();
+    //    testEvent(); pass
+    folly::runBenchmarks();
+
+
 
 
 
