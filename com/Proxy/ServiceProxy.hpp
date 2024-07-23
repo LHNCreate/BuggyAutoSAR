@@ -35,17 +35,32 @@
 
 namespace ara::com::proxy {
 
+
 template<typename Derived>
 class ServiceProxy
 {
-
 public:
-    // Implementation - [SWS_CM_00122]
+    // Implementation - [SWS_CM_10438]
     template<typename HandleType>
-    ara::core::Result<ServiceHandleContainer<HandleType>> FindService(InstanceIdentifier identifier)
+    static ara::core::Result<Derived> Create(const HandleType& handle) noexcept
     {
-        // todo 完成具体功能逻辑
-        return static_cast<Derived*>(this)->FindServiceImpl(identifier);
+        return ara::core::Result<Derived>(Derived(handle));
+    }
+
+
+    // Implementation - [SWS_CM_00122]
+    // todo 完成具体功能逻辑
+    template<typename HandleType>
+    static ara::core::Result<ServiceHandleContainer<HandleType>> FindService(InstanceIdentifier identifier)
+    {
+        //todo 目前只是测试用
+        if(identifier.ToString() == "Executable/RootComponent/SubComponent/Port"){
+            HandleType handle(identifier);
+            ServiceHandleContainer<HandleType> container;
+            container.push_back(handle);
+            return ara::core::Result<ServiceHandleContainer<HandleType>>(container);
+        }
+
     }
 
     // Implementation - [SWS_CM_00622]
@@ -75,6 +90,7 @@ public:
         return static_cast<Derived*>(this)->StartFindServiceImpl(handler, identifier, executor);
     }
 };
+
 
 
 

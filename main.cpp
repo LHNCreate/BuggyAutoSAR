@@ -18,6 +18,7 @@ class testProxyClass : public ara::com::proxy::ServiceProxy<testProxyClass>
     friend class ara::com::proxy::ServiceProxy<testProxyClass>;
 
 public:
+
     class HandleType
     {
     private:
@@ -39,7 +40,7 @@ public:
             return (this->GetInstanceID() < other.GetInstanceID());
         }
 
-        const ara::com::InstanceIdentifier& GetInstanceID() const
+        [[nodiscard]] const ara::com::InstanceIdentifier& GetInstanceID() const
         {
             return m_identifier;
         }
@@ -58,6 +59,12 @@ public:
         // Implementation - [SWS_CM_00349]
         HandleType() = delete;
     };
+
+
+
+//    explicit testProxyClass(const HandleType& handle) : m_handle(handle){
+//
+//    }
 
 
     class testEvent : public ara::com::proxy::events::Event<testEvent>
@@ -90,17 +97,8 @@ public:
     };   // testEvent
 
 
-
-
-
-protected:
-    ara::core::Result<ara::com::ServiceHandleContainer<HandleType>> FindServiceImpl(ara::com::InstanceIdentifier instance)
-    {
-        HandleType                                   hd(instance);
-        ara::com::ServiceHandleContainer<HandleType> t;
-        t.push_back(hd);
-        return ara::core::Result<ara::com::ServiceHandleContainer<HandleType>>(t);
-    }
+private:
+//    HandleType m_handle;
 };
 
 
@@ -220,15 +218,9 @@ void testInstanceSpecifier()
 void testProxyClassWithCrtp1()
 {
     ara::com::InstanceIdentifier id("Executable/RootComponent/SubComponent/Port");
-    // 创建子类对象，调用父类方法
-    std::unique_ptr<testProxyClass> proxy = std::make_unique<testProxyClass>();
-    proxy->FindService<testProxyClass::HandleType>(id);
-    auto result    = proxy->FindService<testProxyClass::HandleType>(id);
-    auto container = result.Value();
-    for (auto& handle : container) {
-        auto instanceId = handle.GetInstanceID();
-        spdlog::warn("{}", instanceId.ToString());
-    }
+    auto result = ara::com::proxy::ServiceProxy<testProxyClass>::FindService<testProxyClass::HandleType>(id);
+
+
 }
 
 void testEvent()
@@ -270,12 +262,6 @@ void Benchmark_IndexPool(size_t numThreads, size_t iterations)
         for (size_t i = 0; i < iterations; ++i) {
             auto A = testEvent1->SetReceiveHandler(handler0).Value();
             testEvent1->UnsetReceiveHandler(A);
-            //            std::optional<uint8_t> index = pool.acquireIndex();
-            //            if (index) {
-            //                pool.releaseIndex(index.value());
-            //            }else {
-            //                std::cerr << "Error: Failed to acquire index" << std::endl;
-            //            }
         }
     };
 
@@ -289,37 +275,6 @@ void Benchmark_IndexPool(size_t numThreads, size_t iterations)
         }
     }
 }
-
-void Benchmark_IndexPoolNonBlock(size_t numThreads, size_t iterations){
-     ara::com::proxy::events::IndexPoolNoneBlock pool;
-    auto worker = [&](int) {
-        for (size_t i = 0; i < iterations; ++i) {
-            std::optional<uint8_t> index = pool.acquireIndex();
-            if (index) {
-                pool.releaseIndex(*index);
-            } else {
-                std::cerr << "Error: Failed to acquire index" << std::endl;
-            }
-        }
-    };
-
-    std::vector<std::thread> threads;
-    for (size_t i = 0; i < numThreads; ++i) {
-        threads.emplace_back(worker, i);
-    }
-
-    for (auto& thread : threads) {
-        if (thread.joinable()) {
-            thread.join();
-        }
-    }
-}
-
-
-
-
-
-
 
 // 定义基准测试用例
 
@@ -327,22 +282,6 @@ BENCHMARK(BM_IndexPool_100_Threads_1)
 {
     Benchmark_IndexPool(50, 100);
 }
-
-BENCHMARK(BM_IndexPoolNonBlock_100_Threads_1)
-{
-    Benchmark_IndexPoolNonBlock(50, 100);
-}
-
-
-// BENCHMARK(BM_IndexPool_16_Threads_100) {
-//     Benchmark_IndexPool(16, 100);
-// }
-// BENCHMARK(BM_IndexPool_28_Threads_100) {
-//     Benchmark_IndexPool(28, 100);
-// }
-// BENCHMARK(BM_IndexPool_100_Threads_100) {
-//     Benchmark_IndexPool(100, 100);
-// }
 
 BENCHMARK_DRAW_LINE();
 

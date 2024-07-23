@@ -76,71 +76,19 @@ private:
             freeIndices.push(i);
         }
     }
-    static constexpr uint8_t  maxIndex = 63;   // handler 索引大小最多不可超过63
-    std::stack<uint8_t>       freeIndices;
+    static constexpr uint8_t  maxIndex = 255;   // handler 索引大小不可超过255
+    std::stack<uint8_t>       freeIndices;      // default:deque
     std::bitset<maxIndex + 1> indexInUse;
     std::mutex                indexInUseMutex;
 };   // Index pool
 
-
-//
-class IndexPoolNoneBlock
-{
-public:
-//    static IndexPoolNoneBlock& GetInstance()
-//    {
-//        static IndexPoolNoneBlock instance;
-//        return instance;
-//    }
-    IndexPoolNoneBlock()
-        : indexMap(maxIndex + 1)
-    {
-        for (uint8_t i = 0; i <= maxIndex; ++i) {
-            indexMap.insert(std::make_pair(i, false));
-        }
-    };
-
-
-    // 获取一个可用的索引
-    std::optional<uint8_t> acquireIndex()
-    {
-        for (auto& kv : indexMap) {
-            bool expected = false;
-            if (std::atomic_compare_exchange_strong(
-                    reinterpret_cast<std::atomic<bool>*>(&kv.second),
-                    &expected,
-                    true)) {
-                return kv.first;
-            }
-        }
-        return std::nullopt;   // 索引已满
-    }
-
-    // 释放一个索引
-    void releaseIndex(uint8_t index)
-    {
-        if (index <= maxIndex) {
-            auto it = indexMap.find(index);
-            if (it != indexMap.end()) {
-                std::atomic_store(reinterpret_cast<std::atomic<bool>*>(&it->second), false);
-            }
-        }
-    }
-
-private:
-    static constexpr uint8_t            maxIndex = 63;   // handler 索引大小最多不可超过63
-    folly::AtomicHashMap<uint8_t, bool> indexMap;
-};
-
-
-
-// 处理程序包装结构体，包含std::function和唯一ID
+// 处理程序包装结构体，包含handler和唯一ID
 struct HandlerWrapper
 {
     uint8_t                       index;
     ara::com::EventReceiveHandler handler;
 
-    bool operator==(const HandlerWrapper& other) const
+    bool                          operator==(const HandlerWrapper& other) const
     {
         return index == other.index;
     }
@@ -221,8 +169,8 @@ public:
 
 
 private:
-    ara::core::Vector<HandlerWrapper>  handlerlists;
-    std::mutex                         handlersMapMutex;
+    ara::core::Vector<HandlerWrapper> handlerlists;
+    std::mutex                        handlersMapMutex;
 };
 
 

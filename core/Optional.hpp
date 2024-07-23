@@ -32,8 +32,8 @@ namespace ara::core {
 class bad_optional_access : public std::exception
 {
 public:
-    bad_optional_access()          = default;
-    virtual ~bad_optional_access() = default;
+    bad_optional_access()           = default;
+    ~bad_optional_access() override = default;
 
     [[nodiscard]] const char* what() const noexcept override
     {
@@ -114,7 +114,6 @@ struct Optional
         }
         return std::move(m_value);
     }
-
 };
 
 }   // namespace ara::core
