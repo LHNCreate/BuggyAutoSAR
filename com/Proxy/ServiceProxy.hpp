@@ -40,27 +40,41 @@ template<typename Derived>
 class ServiceProxy
 {
 public:
+    //禁止拷贝构造和赋值操作
+    ServiceProxy(const ServiceProxy&)                = delete;
+
+    ServiceProxy& operator=(const ServiceProxy&)     = delete;
+
+    ServiceProxy(ServiceProxy&&) noexcept            = default;
+
+    ServiceProxy& operator=(ServiceProxy&&) noexcept = default;
+
+    ~ServiceProxy() noexcept = default;
+
     // Implementation - [SWS_CM_10438]
+    /*
+     * 原本这里是要使用Result<Derived> 但是Result中底层结构使用了std::variant，要求元素必须可以复制，而包含了std::mutex，mutex
+     * 不可复制，所以这里使用std::unique_ptr<Derived>
+     * */
     template<typename HandleType>
-    static ara::core::Result<Derived> Create(const HandleType& handle) noexcept
+    static std::unique_ptr<ServiceProxy<Derived>> Create(const HandleType& handle) noexcept
     {
-        return ara::core::Result<Derived>(Derived(handle));
+        return std::make_unique<Derived>(handle);
     }
 
 
     // Implementation - [SWS_CM_00122]
-    // todo 完成具体功能逻辑
+    // todo 完成具体功能逻辑,当前仅是测试！
     template<typename HandleType>
     static ara::core::Result<ServiceHandleContainer<HandleType>> FindService(InstanceIdentifier identifier)
     {
-        //todo 目前只是测试用
-        if(identifier.ToString() == "Executable/RootComponent/SubComponent/Port"){
+        ServiceHandleContainer<HandleType> container{};
+        if (identifier.ToString() == "Executable/RootComponent/SubComponent/Port/Test") {
             HandleType handle(identifier);
-            ServiceHandleContainer<HandleType> container;
             container.push_back(handle);
             return ara::core::Result<ServiceHandleContainer<HandleType>>(container);
         }
-
+        return ara::core::Result<ServiceHandleContainer<HandleType>>::FromError(MakeErrorCode(ara::com::ComErrc::kInvalidInstanceIdentifierString, 0));
     }
 
     // Implementation - [SWS_CM_00622]
@@ -89,6 +103,23 @@ public:
         // todo
         return static_cast<Derived*>(this)->StartFindServiceImpl(handler, identifier, executor);
     }
+
+
+    // Implementation - [SWS_CM_10383]
+    template<typename HandleType>
+    HandleType GetHandle() const
+    {
+        std::lock_guard<std::mutex> lock(getHandleMutex);
+        return static_cast<const Derived*>(this)->GetHandleImpl();
+    }
+
+private:
+    // 防止与const冲突
+    mutable std::mutex getHandleMutex;
+
+
+protected:
+    ServiceProxy() = default;
 };
 
 

@@ -53,7 +53,7 @@ public:
         : instanceID(serializedFormat)
     {}
 
-    StringView ToString() const { return instanceID; }
+    [[nodiscard]] StringView ToString() const { return instanceID; }
 
     bool operator==(const InstanceIdentifier& other) const
     {

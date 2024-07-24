@@ -59,12 +59,11 @@ public:
         return m_errorCodeValue;
     }
     // Implementation - [SWS_CORE_00515]
-    constexpr const ErrorDomain& Domain() const noexcept { return m_errorDomain; }
+    [[nodiscard]] constexpr const ErrorDomain& Domain() const noexcept { return m_errorDomain; }
 
     // Implementation - [SWS_CORE_00516]
-    constexpr ErrorDomain::SupportDataType SupportData() const noexcept { return m_supportData; }
+    [[nodiscard]] constexpr ErrorDomain::SupportDataType SupportData() const noexcept { return m_supportData; }
 
-    // TODO:[SWS_CORE_00518]需要先实现StringView,这里暂时使用std::string_view
     [[nodiscard]] std::string_view Message() const noexcept { return m_message; }
 
     void setErrorMessage(std::string_view message) { m_message = message; }

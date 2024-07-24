@@ -15,10 +15,9 @@
 
 class testProxyClass : public ara::com::proxy::ServiceProxy<testProxyClass>
 {
-    friend class ara::com::proxy::ServiceProxy<testProxyClass>;
+
 
 public:
-
     class HandleType
     {
     private:
@@ -60,18 +59,9 @@ public:
         HandleType() = delete;
     };
 
-
-
-//    explicit testProxyClass(const HandleType& handle) : m_handle(handle){
-//
-//    }
-
-
     class testEvent : public ara::com::proxy::events::Event<testEvent>
     {
-        friend class ara::com::proxy::events::Event<testEvent>;
-
-    protected:
+    public:
         ara::core::Result<ara::com::proxy::events::HandlerWrapper> SetReceiveHandlerImpl(const ara::com::proxy::events::HandlerWrapper& handler)
         {
             m_handlers.emplace_back(handler);
@@ -85,7 +75,6 @@ public:
         }
 
 
-    public:
         // use to test
         ara::core::Vector<ara::com::proxy::events::HandlerWrapper>& GetHandlers()
         {
@@ -97,8 +86,30 @@ public:
     };   // testEvent
 
 
+
+    testProxyClass& operator=(testProxyClass&& other) noexcept
+    {
+        if (this != &other) {
+            m_handle = std::move(other.m_handle);
+        }
+        return *this;
+    }
+
+
+    [[nodiscard]] HandleType GetHandleImpl() const
+    {
+        return m_handle;
+    }
+
+
+    explicit testProxyClass(const HandleType& handle)
+        : m_handle(handle)
+    {}
+
+    ~testProxyClass() = default;
+
 private:
-//    HandleType m_handle;
+    HandleType m_handle;
 };
 
 
@@ -118,17 +129,17 @@ void testResult()
     ara::core::Result<int> result(42);
     ara::core::Result<int> errorResult(ErrorCodeTest::E1);
 
-    auto handle_value = [](const int& v) -> ara::core::Result<std::string> {
+    auto                   handle_value = [](const int& v) -> ara::core::Result<std::string> {
         std::cout << "handle_value: " << v << std::endl;
         return ara::core::Result<std::string>(std::to_string(v));
     };
 
     auto handle_value_direct = [](const int& v) -> std::string { return std::to_string(v); };
 
-    auto res1 = result.Bind(handle_value);
-    auto res2 = result.Bind(handle_value_direct);
-    auto res3 = errorResult.Bind(handle_value);
-    auto res4 = errorResult.Bind(handle_value_direct);
+    auto res1                = result.Bind(handle_value);
+    auto res2                = result.Bind(handle_value_direct);
+    auto res3                = errorResult.Bind(handle_value);
+    auto res4                = errorResult.Bind(handle_value_direct);
 
     std::cout << "res2: ";
     if (res2.Ok().has_value()) {
@@ -215,26 +226,35 @@ void testInstanceSpecifier()
 }
 
 
-void testProxyClassWithCrtp1()
+void testFindService()
 {
-    ara::com::InstanceIdentifier id("Executable/RootComponent/SubComponent/Port");
-    auto result = ara::com::proxy::ServiceProxy<testProxyClass>::FindService<testProxyClass::HandleType>(id);
-
-
+    ara::com::InstanceIdentifier id("Executable/RootComponent/SubComponent/Port/Test");
+    auto                         result = ara::com::proxy::ServiceProxy<testProxyClass>::FindService<testProxyClass::HandleType>(id);
+    if (result.Err()) {
+        spdlog::error("{}", result.Err()->Value());
+    }
+    for (auto& hw : result.Value()) {
+        // Create方法创建
+        auto cc     = ara::com::proxy::ServiceProxy<testProxyClass>::Create(hw);
+        auto Handle = cc->GetHandle<testProxyClass::HandleType>();
+        spdlog::info("{}", Handle.GetInstanceID().ToString());
+        //        t1 = std::make_unique<testProxyClass>(hw);
+    }
+    //    auto newid = t1->GetHandle<testProxyClass::HandleType>();
 }
 
 void testEvent()
 {
     std::unique_ptr<testProxyClass::testEvent> testEvent1 = std::make_unique<testProxyClass::testEvent>();
 
-    ara::com::EventReceiveHandler handler0 = []() {
+    ara::com::EventReceiveHandler              handler0   = []() {
         spdlog::info("this is A");
     };
     ara::com::EventReceiveHandler handler1 = []() {
         spdlog::info("this is B");
     };
-    auto A = testEvent1->SetReceiveHandler(handler0).Value();
-    auto B = testEvent1->SetReceiveHandler(handler1).Value();
+    auto  A        = testEvent1->SetReceiveHandler(handler0).Value();
+    auto  B        = testEvent1->SetReceiveHandler(handler1).Value();
 
     auto& handlers = testEvent1->GetHandlers();
     for (auto& hw : handlers) {
@@ -298,7 +318,8 @@ int main()
     //    testInstanceSpecifier(); pass
     //    testProxyClassWithCrtp1(); pass
     //    testEvent(); pass
-    folly::runBenchmarks();
+    testFindService();
+    //    folly::runBenchmarks();
 
 
 
