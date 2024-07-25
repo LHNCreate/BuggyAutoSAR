@@ -59,6 +59,16 @@ struct FindServiceHandle
 
     // Implementation - [SWS_CM_00353]
     FindServiceHandle() = delete;
+
+    FindServiceHandle(const FindServiceHandle&) = default;
+
+    FindServiceHandle& operator=(FindServiceHandle&&) = default;
+
+    FindServiceHandle(FindServiceHandle &&) = default;
+
+    ~FindServiceHandle() = default;
+
+
 };
 
 

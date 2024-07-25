@@ -40,6 +40,17 @@ class InstanceIdentifier
     using StringView = std::string_view;
 
 public:
+    InstanceIdentifier(const InstanceIdentifier& other)                                         = default;
+
+    InstanceIdentifier(InstanceIdentifier&& other) noexcept                                     = default;
+
+    ~InstanceIdentifier()                                                                       = default;
+
+    InstanceIdentifier&                          operator=(InstanceIdentifier&& other) noexcept = default;
+
+    InstanceIdentifier&                          operator=(const InstanceIdentifier& other)     = default;
+
+
     static ara::core::Result<InstanceIdentifier> Create(StringView serializedFormat)
     {
         if (serializedFormat.empty()) {
@@ -49,13 +60,11 @@ public:
             InstanceIdentifier(serializedFormat));
     }
 
-    explicit InstanceIdentifier(StringView serializedFormat)
-        : instanceID(serializedFormat)
-    {}
 
     [[nodiscard]] StringView ToString() const { return instanceID; }
 
-    bool operator==(const InstanceIdentifier& other) const
+
+    bool                     operator==(const InstanceIdentifier& other) const
     {
         return this->instanceID == other.instanceID;
     }
@@ -65,10 +74,11 @@ public:
         return this->instanceID < other.instanceID;
     }
 
-    InstanceIdentifier& operator=(const InstanceIdentifier& other) = default;
-
-
 private:
+    InstanceIdentifier() = default;
+    explicit InstanceIdentifier(StringView serializedFormat)
+        : instanceID(serializedFormat)
+    {}
     StringView instanceID;
 };
 

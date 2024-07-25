@@ -11,8 +11,6 @@
 #include <iostream>
 #include <spdlog/spdlog.h>
 #include <string>
-
-
 class testProxyClass : public ara::com::proxy::ServiceProxy<testProxyClass>
 {
 
@@ -228,7 +226,8 @@ void testInstanceSpecifier()
 
 void testFindService()
 {
-    ara::com::InstanceIdentifier id("Executable/RootComponent/SubComponent/Port/Test");
+//    ara::com::InstanceIdentifier id("Executable/RootComponent/SubComponent/Port/Test");
+    auto id = ara::com::InstanceIdentifier::Create("Executable/RootComponent/SubComponent/Port/Test").Value();
     auto                         result = ara::com::proxy::ServiceProxy<testProxyClass>::FindService<testProxyClass::HandleType>(id);
     if (result.Err()) {
         spdlog::error("{}", result.Err()->Value());

@@ -62,7 +62,7 @@ public:
     ServiceIdentifierType& operator=(const ServiceIdentifierType& other) = default;
 
 
-    StringView ToString() const { return this->serviceID; }
+    [[nodiscard]] StringView ToString() const { return this->serviceID; }
 
 
 private:
