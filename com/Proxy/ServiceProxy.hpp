@@ -52,10 +52,10 @@ public:
     ~ServiceProxy() noexcept = default;
 
     // Implementation - [SWS_CM_10438]
-    /*
+    /**
      * 原本这里是要使用Result<Derived> 但是Result中底层结构使用了std::variant，要求元素必须可以复制，而包含了std::mutex，mutex
      * 不可复制，所以这里使用std::unique_ptr<Derived>
-     * */
+     */
     template<typename HandleType>
     static std::unique_ptr<ServiceProxy<Derived>> Create(const HandleType& handle) noexcept
     {
@@ -64,7 +64,6 @@ public:
 
 
     // Implementation - [SWS_CM_00122]
-    // todo 完成具体功能逻辑,当前仅是测试！
     template<typename HandleType>
     static ara::core::Result<ServiceHandleContainer<HandleType>> FindService(InstanceIdentifier identifier)
     {
@@ -100,7 +99,6 @@ public:
                                                           InstanceIdentifier             identifier,
                                                           ExecutorT&&                    executor)
     {
-        // todo
         return static_cast<Derived*>(this)->StartFindServiceImpl(handler, identifier, executor);
     }
 

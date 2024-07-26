@@ -15,16 +15,6 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-
-/**
- * @file           : InstanceIdentifier.hpp
- * @author         : leehaonan
- * @brief          : 对InstanceIdentifier进行实现
- * @version        : R23-11
- * @date           : 2024/7/4
- *
- */
-
 #ifndef BUGGYAUTOSAR_INSTANCEIDENTIFIER_HPP
 #define BUGGYAUTOSAR_INSTANCEIDENTIFIER_HPP
 #include <com/ComErrorDomain.hpp>

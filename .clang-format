@@ -4,7 +4,7 @@
 # 语言: None, Cpp, Java, JavaScript, ObjC, Proto, TableGen, TextProto
 Language: Cpp
 
-BasedOnStyle: Microsoft
+BasedOnStyle: Google
 
 # 访问说明符(public、private等)的偏移
 AccessModifierOffset: -4
@@ -15,10 +15,10 @@ IncludeBlocks: Preserve
 AlignAfterOpenBracket: Align
 
 # 连续赋值时，对齐所有等号
-AlignConsecutiveAssignments: AcrossEmptyLines
+AlignConsecutiveAssignments: Consecutive
 
 # 连续声明时，对齐所有声明的变量名
-AlignConsecutiveDeclarations: AcrossEmptyLines
+AlignConsecutiveDeclarations: Consecutive
 
 # 对齐连续位域字段的风格
 # AlignConsecutiveBitFields: AcrossEmptyLinesAndComments
@@ -184,7 +184,7 @@ IncludeCategories:
     Priority: 1
 
 # 缩进case标签
-IndentCaseLabels: false
+IndentCaseLabels: true
 
 # 要使用的预处理器指令缩进样式
 IndentPPDirectives: None
