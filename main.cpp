@@ -10,56 +10,81 @@
 #include <folly/Benchmark.h>
 #include <folly/init/Init.h>
 #include <iostream>
-#include <spdlog/sinks/stdout_color_sinks-inl.h>
 #include <spdlog/spdlog.h>
 #include <string>
 #include <core/logger.hpp>
-class testProxyClass : public ara::com::proxy::ServiceProxy<testProxyClass>
+
+
+
+
+class testProxyClass : public ara::com::proxy::iceoryx_binding::ServiceProxy<testProxyClass>
 {
 
 
 public:
-    class HandleType
+//    class HandleType
+//    {
+//    private:
+//        ara::com::InstanceIdentifier m_identifier;
+//
+//    public:
+//        explicit HandleType(ara::com::InstanceIdentifier identifier)
+//            : m_identifier(identifier)
+//        {
+//        }
+//
+//        bool operator==(const HandleType& other) const
+//        {
+//            return (this->GetInstanceID() == other.GetInstanceID());
+//        }
+//
+//        bool operator<(const HandleType& other) const
+//        {
+//            return (this->GetInstanceID() < other.GetInstanceID());
+//        }
+//
+//        [[nodiscard]] const ara::com::InstanceIdentifier& GetInstanceID() const
+//        {
+//            return m_identifier;
+//        }
+//
+//        // Implementation - [SWS_CM_00317]
+//        HandleType(const HandleType&)            = default;
+//        HandleType& operator=(const HandleType&) = default;
+//
+//        // Implementation - [SWS_CM_11371]
+//        virtual ~HandleType() noexcept = default;
+//
+//        // Implementation - [SWS_CM_00318]
+//        HandleType(HandleType&&)            = default;
+//        HandleType& operator=(HandleType&&) = default;
+//
+//        // Implementation - [SWS_CM_00349]
+//        HandleType() = delete;
+//    };
+
+    // testEvent
+
+
+
+    testProxyClass& operator=(testProxyClass&& other) noexcept
     {
-    private:
-        ara::com::InstanceIdentifier m_identifier;
-
-    public:
-        explicit HandleType(ara::com::InstanceIdentifier identifier)
-            : m_identifier(identifier)
-        {
+        if (this != &other) {
+            m_handle = std::move(other.m_handle);
         }
+        return *this;
+    }
 
-        bool operator==(const HandleType& other) const
-        {
-            return (this->GetInstanceID() == other.GetInstanceID());
-        }
 
-        bool operator<(const HandleType& other) const
-        {
-            return (this->GetInstanceID() < other.GetInstanceID());
-        }
+    [[nodiscard]] ara::com::network_binding::iceoryx::ProxyHandleType GetHandleImpl() const
+    {
+        return m_handle;
+    }
 
-        [[nodiscard]] const ara::com::InstanceIdentifier& GetInstanceID() const
-        {
-            return m_identifier;
-        }
 
-        // Implementation - [SWS_CM_00317]
-        HandleType(const HandleType&)            = default;
-        HandleType& operator=(const HandleType&) = default;
+    ~testProxyClass() = default;
 
-        // Implementation - [SWS_CM_11371]
-        virtual ~HandleType() noexcept = default;
-
-        // Implementation - [SWS_CM_00318]
-        HandleType(HandleType&&)            = default;
-        HandleType& operator=(HandleType&&) = default;
-
-        // Implementation - [SWS_CM_00349]
-        HandleType() = delete;
-    };
-
+public:
     class testEvent : public ara::com::proxy::events::Event<testEvent>
     {
     public:
@@ -84,33 +109,14 @@ public:
 
     private:
         ara::core::Vector<ara::com::proxy::events::HandlerWrapper> m_handlers;
-    };   // testEvent
+    };
 
-
-
-    testProxyClass& operator=(testProxyClass&& other) noexcept
-    {
-        if (this != &other) {
-            m_handle = std::move(other.m_handle);
-        }
-        return *this;
-    }
-
-
-    [[nodiscard]] HandleType GetHandleImpl() const
-    {
-        return m_handle;
-    }
-
-
-    explicit testProxyClass(const HandleType& handle)
+    explicit testProxyClass(const ara::com::network_binding::iceoryx::ProxyHandleType& handle)
         : m_handle(handle)
     {}
 
-    ~testProxyClass() = default;
-
 private:
-    HandleType m_handle;
+    ara::com::network_binding::iceoryx::ProxyHandleType m_handle;
 };
 
 
@@ -142,23 +148,23 @@ void testErrorCode()
 }
 
 
-void testFindService()
-{
-    //    ara::com::InstanceIdentifier id("Executable/RootComponent/SubComponent/Port/Test");
-    auto id     = ara::com::InstanceIdentifier::Create("Executable/RootComponent/SubComponent/Port/Test").Value();
-    auto result = ara::com::proxy::ServiceProxy<testProxyClass>::FindService<testProxyClass::HandleType>(id);
-    if (result.Err()) {
-        spdlog::error("{}", result.Err()->Value());
-    }
-    for (auto& hw : result.Value()) {
-        // Create方法创建
-        auto cc     = ara::com::proxy::ServiceProxy<testProxyClass>::Create(hw);
-        auto Handle = cc->GetHandle<testProxyClass::HandleType>();
-        spdlog::info("{}", Handle.GetInstanceID().ToString());
-        //        t1 = std::make_unique<testProxyClass>(hw);
-    }
-    //    auto newid = t1->GetHandle<testProxyClass::HandleType>();
-}
+//void testFindService()
+//{
+//    using ara::com::network_binding::iceoryx::ProxyHandleType;
+//    //    ara::com::InstanceIdentifier id("Executable/RootComponent/SubComponent/Port/Test");
+////    auto id     = ara::com::InstanceIdentifier::Create("Executable/RootComponent/SubComponent/Port/Test").Value();
+//    ara::com::network_binding::iceoryx::InstanceIdentifier id("fuck dog man");
+//    auto result = ara::com::proxy::iceoryx_binding::ServiceProxy<testProxyClass>::FindService<ProxyHandleType>(id);
+//    if (result.Err()) {
+//        spdlog::error("{}", result.Err()->Value());
+//    }
+//    for (auto& hw : result.Value()) {
+//        // Create方法创建
+//        auto cc     = ara::com::proxy::iceoryx_binding::ServiceProxy<testProxyClass>::Create(hw);
+//        //        t1 = std::make_unique<testProxyClass>(hw);
+//    }
+//    //    auto newid = t1->GetHandle<testProxyClass::HandleType>();
+//}
 
 void testEvent()
 {

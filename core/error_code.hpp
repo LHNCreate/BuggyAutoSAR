@@ -58,6 +58,7 @@ public:
     {
         return m_errorCodeValue;
     }
+
     // Implementation - [SWS_CORE_00515]
     [[nodiscard]] constexpr const ErrorDomain& Domain() const noexcept { return m_errorDomain; }
 
@@ -70,6 +71,7 @@ public:
 
     // Implementation - [SWS_CORE_00519]
     void ThrowAsException() const { this->Domain().ThrowAsException(*this); }
+
     // Implementation - [SWS_CORE_00571]
     friend constexpr bool operator==(const ErrorCode& lhs, const ErrorCode& rhs) noexcept
     {

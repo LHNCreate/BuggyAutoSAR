@@ -28,24 +28,27 @@
 #define BUGGYAUTOSAR_SERVICEPROXY_HPP
 
 #include "core/error_code.hpp"
+#include <com/NetworkBinding/iceoryx/runtime.hpp>
+#include <com/NetworkBinding/iceoryx/types.hpp>
 #include <com/ServiceHandleType.hpp>
 #include <core/InstanceSpecifier.hpp>
 #include <core/result.hpp>
-#include <spdlog/spdlog.h>
 
 namespace ara::com::proxy {
+namespace iceoryx_binding {
 
+using ara::com::network_binding::iceoryx::InstanceIdentifier;
 
 template<typename Derived>
 class ServiceProxy
 {
 public:
-    //禁止拷贝构造和赋值操作
-    ServiceProxy(const ServiceProxy&)                = delete;
+    // 禁止拷贝构造和赋值操作
+    ServiceProxy(const ServiceProxy&) = delete;
 
-    ServiceProxy& operator=(const ServiceProxy&)     = delete;
+    ServiceProxy& operator=(const ServiceProxy&) = delete;
 
-    ServiceProxy(ServiceProxy&&) noexcept            = default;
+    ServiceProxy(ServiceProxy&&) noexcept = default;
 
     ServiceProxy& operator=(ServiceProxy&&) noexcept = default;
 
@@ -56,8 +59,8 @@ public:
      * 原本这里是要使用Result<Derived> 但是Result中底层结构使用了std::variant，要求元素必须可以复制，而包含了std::mutex，mutex
      * 不可复制，所以这里使用std::unique_ptr<Derived>
      */
-    template<typename HandleType>
-    static std::unique_ptr<ServiceProxy<Derived>> Create(const HandleType& handle) noexcept
+    template<typename T>
+    static std::unique_ptr<ServiceProxy<Derived>> Create(const T& handle) noexcept
     {
         return std::make_unique<Derived>(handle);
     }
@@ -67,13 +70,14 @@ public:
     template<typename HandleType>
     static ara::core::Result<ServiceHandleContainer<HandleType>> FindService(InstanceIdentifier identifier)
     {
-        ServiceHandleContainer<HandleType> container{};
-        if (identifier.ToString() == "Executable/RootComponent/SubComponent/Port/Test") {
-            HandleType handle(identifier);
-            container.push_back(handle);
-            return ara::core::Result<ServiceHandleContainer<HandleType>>(container);
-        }
-        return ara::core::Result<ServiceHandleContainer<HandleType>>::FromError(MakeErrorCode(ara::com::ComErrc::kInvalidInstanceIdentifierString, 0));
+        using ara::com::network_binding::iceoryx::Runtime;
+
+        // 检查identifier的合法性
+
+        // then find service
+        return Runtime::GetInstance().FindService(identifier);
+
+        //        return ara::core::Result<ServiceHandleContainer<HandleType>>::FromError(MakeErrorCode(ara::com::ComErrc::kInvalidInstanceIdentifierString, 0));
     }
 
     // Implementation - [SWS_CM_00622]
@@ -119,6 +123,14 @@ private:
 protected:
     ServiceProxy() = default;
 };
+
+
+
+
+
+
+}   // namespace iceoryx_binding
+
 
 
 
