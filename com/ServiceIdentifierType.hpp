@@ -30,8 +30,6 @@
 #define BUGGYAUTOSAR_SERVICEIDENTIFIERTYPE_HPP
 #include <string>
 #include <string_view>
-
-
 namespace ara::com {
 
 // Implementation - [SWS_CM_01010]

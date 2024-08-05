@@ -29,7 +29,7 @@
 
 #include <core/error_code.hpp>
 #include <cstdint>
-
+#include <core/String.hpp>
 namespace ara::core {
 
 class ErrorCode;
@@ -76,10 +76,10 @@ public:
     [[nodiscard]] constexpr Idtype id() const noexcept { return m_id; }
 
     // Implementation - [SWS_CORE_00152]
-    virtual const char* Name() const noexcept = 0;
+    virtual ara::core::String Name() const noexcept = 0;
 
     // Implementation - [SWS_CORE_00153]
-    virtual const char* Message(CodeType errorCode) const noexcept = 0;
+    virtual ara::core::String Message(CodeType errorCode) const noexcept = 0;
 
     // Implementation - [SWS_CORE_00154]
     virtual void ThrowAsException(const ErrorCode& errorCode) const noexcept(false) = 0;

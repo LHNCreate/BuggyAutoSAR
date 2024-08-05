@@ -31,8 +31,7 @@
 
 #include <core/error_code.hpp>
 #include <core/exception.hpp>
-#include <folly/Conv.h>
-
+#include <core/String.hpp>
 namespace ara::com {
 
 using ara::core::ErrorCode;
@@ -78,10 +77,6 @@ enum class ComErrc : ErrorDomain::CodeType
 
 
 
-
-
-
-
 // Implementation - [SWS_CM_11329]
 class ComErrorDomain final : public ErrorDomain
 {
@@ -103,17 +98,15 @@ public:
     //    ComErrorDomain() = delete;
 
     // Implementation - [SWS_CM_11331]
-    const char* Name() const noexcept override
+    ara::core::String Name() const noexcept override
     {
         return "Com";
     }
 
     // Implementation - [SWS_CM_11332]
-    const char* Message(CodeType errorCode) const noexcept override
+    ara::core::String Message(CodeType errorCode) const noexcept override
     {
-        static thread_local folly::fbstring message;
-        message = folly::to<folly::fbstring>(errorCode);
-        return message.c_str();
+        return std::to_string(errorCode);
     }
 
     // Implementation - [SWS_CM_11333]

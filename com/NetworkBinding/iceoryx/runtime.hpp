@@ -11,10 +11,10 @@
 #include <com/NetworkBinding/iceoryx/types.hpp>
 #include <core/String.hpp>
 #include <core/result.hpp>
+#include <iceoryx_posh/capro/service_description.hpp>
 #include <iceoryx_posh/popo/listener.hpp>
 #include <iceoryx_posh/runtime/posh_runtime.hpp>
 #include <iceoryx_posh/runtime/service_discovery.hpp>
-#include <iceoryx_posh/capro/service_description.hpp>
 namespace ara::com::network_binding::iceoryx {
 
 

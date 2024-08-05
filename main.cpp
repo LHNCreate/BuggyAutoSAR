@@ -7,8 +7,6 @@
 #include <core/Vector.hpp>
 #include <core/core_error_domain.hpp>
 #include <core/result.hpp>
-#include <folly/Benchmark.h>
-#include <folly/init/Init.h>
 #include <iostream>
 #include <spdlog/spdlog.h>
 #include <string>
@@ -190,46 +188,6 @@ void testEvent()
     }
 }
 
-
-namespace benchmark {
-
-ara::com::EventReceiveHandler handler0 = []() {
-    spdlog::info("this is A");
-};
-
-void Benchmark_IndexPool(size_t numThreads, size_t iterations)
-{
-    using namespace folly;
-    std::unique_ptr<testProxyClass::testEvent> testEvent1 = std::make_unique<testProxyClass::testEvent>();
-    auto                                       worker     = [&](int) {
-        for (size_t i = 0; i < iterations; ++i) {
-            auto A = testEvent1->SetReceiveHandler(handler0).Value();
-            testEvent1->UnsetReceiveHandler(A);
-        }
-    };
-
-    std::vector<std::thread> threads;
-    for (size_t i = 0; i < numThreads; ++i) {
-        threads.emplace_back(worker, i);
-    }
-    for (auto& thread : threads) {
-        if (thread.joinable()) {
-            thread.join();
-        }
-    }
-}
-
-// 定义基准测试用例
-
-BENCHMARK(BM_IndexPool_100_Threads_1)
-{
-    Benchmark_IndexPool(50, 100);
-}
-
-BENCHMARK_DRAW_LINE();
-
-
-}   // namespace benchmark
 
 
 void testLogger(){

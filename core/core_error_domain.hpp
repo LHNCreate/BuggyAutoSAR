@@ -30,8 +30,6 @@
 #define BUGGYAUTOSAR_CORE_ERROR_DOMAIN_HPP
 #include <core/error_code.hpp>
 #include <core/exception.hpp>
-#include <folly/Conv.h>
-#include <folly/FBString.h>
 #include <string>
 
 namespace ara::core {
@@ -91,17 +89,15 @@ public:
 
 
     // Implementation - [SWS_CORE_05242]
-    const char* Name() const noexcept override
+    ara::core::String Name() const noexcept override
     {
         return "Core";
     }
 
     // Implementation - [SWS_CORE_05243]
-    const char* Message(ErrorDomain::CodeType errorCode) const noexcept override
+    ara::core::String Message(ErrorDomain::CodeType errorCode) const noexcept override
     {
-        static thread_local folly::fbstring message;
-        message = folly::to<folly::fbstring>(errorCode);
-        return message.c_str();
+        return std::to_string(errorCode);
     }
 
     void ThrowAsException(const ErrorCode& errorCode) const noexcept(false) override

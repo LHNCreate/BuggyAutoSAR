@@ -28,11 +28,11 @@
 #ifndef BUGGYAUTOSAR_STRING_HPP
 #define BUGGYAUTOSAR_STRING_HPP
 
-#include <folly/FBString.h>
+#include <string>
 
 namespace ara::core {
 
-using String = folly::fbstring;
+using String = std::string;
 
 }
 

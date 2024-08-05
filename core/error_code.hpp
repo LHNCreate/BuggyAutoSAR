@@ -25,6 +25,7 @@
 
 #ifndef THREADPRACTISEYEEAH_ERROR_CODE_HPP
 #define THREADPRACTISEYEEAH_ERROR_CODE_HPP
+
 #include <core/error_domain.hpp>
 #include <string_view>
 #include <type_traits>

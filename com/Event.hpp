@@ -31,7 +31,6 @@
 #include <com/ServiceHandleType.hpp>
 #include <core/String.hpp>
 #include <core/result.hpp>
-#include <folly/AtomicHashMap.h>
 #include <mutex>
 #include <spdlog/spdlog.h>
 #include <stack>
