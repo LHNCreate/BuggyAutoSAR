@@ -35,10 +35,17 @@
 #include <core/result.hpp>
 
 namespace ara::com::proxy {
-namespace iceoryx_binding {
+enum class network_binding_protocol : std::uint8_t {
+    kIceoryx,
+    kVSOMEIP,
+    kFASTDDS
+};
+
+
+
+
 
 using ara::com::network_binding::iceoryx::InstanceIdentifier;
-
 template<typename Derived>
 class ServiceProxy
 {
@@ -68,21 +75,31 @@ public:
 
     // Implementation - [SWS_CM_00122]
     template<typename HandleType>
-    static ara::core::Result<ServiceHandleContainer<HandleType>> FindService(InstanceIdentifier identifier)
+    static ara::core::Result<ServiceHandleContainer<HandleType>> FindService(InstanceIdentifier identifier,network_binding_protocol protocol)
     {
-        using ara::com::network_binding::iceoryx::Runtime;
 
-        // 检查identifier的合法性
+        switch (protocol) {
+            case network_binding_protocol::kIceoryx:{
+                using ara::com::network_binding::iceoryx::Runtime;
 
-        // then find service
-        return Runtime::GetInstance().FindService(identifier);
+                // 检查identifier的合法性
+
+                // then find service
+                return Runtime::GetInstance().FindService(identifier);
+            }
+
+            case network_binding_protocol::kVSOMEIP: break;
+            case network_binding_protocol::kFASTDDS: break;
+        }
+
+
 
         //        return ara::core::Result<ServiceHandleContainer<HandleType>>::FromError(MakeErrorCode(ara::com::ComErrc::kInvalidInstanceIdentifierString, 0));
     }
 
     // Implementation - [SWS_CM_00622]
     template<typename HandleType>
-    ara::core::Result<ServiceHandleContainer<HandleType>> FindService(ara::core::InstanceSpecifier specifier)
+    ara::core::Result<ServiceHandleContainer<HandleType>> FindService(ara::core::InstanceSpecifier specifier,network_binding_protocol protocol)
     {
         // todo
         return static_cast<Derived*>(this)->FindServiceImpl(specifier);
@@ -123,14 +140,6 @@ private:
 protected:
     ServiceProxy() = default;
 };
-
-
-
-
-
-
-}   // namespace iceoryx_binding
-
 
 
 
