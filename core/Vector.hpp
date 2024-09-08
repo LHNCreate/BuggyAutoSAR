@@ -28,11 +28,10 @@
 #ifndef BUGGYAUTOSAR_VECTOR_HPP
 #define BUGGYAUTOSAR_VECTOR_HPP
 #include <vector>
-#include <folly/FBVector.h>
 namespace ara::core {
 
 template<typename T>
-using Vector = folly::fbvector<T>;
+using Vector = std::vector<T>;
 
 }
 

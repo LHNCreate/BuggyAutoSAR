@@ -9,18 +9,22 @@
 #ifndef BUGGYAUTOSAR_RUNTIME_HPP
 #define BUGGYAUTOSAR_RUNTIME_HPP
 #include <com/NetworkBinding/iceoryx/types.hpp>
+#include <com/ServiceHandleType.hpp>
 #include <core/String.hpp>
 #include <core/result.hpp>
 #include <iceoryx_posh/capro/service_description.hpp>
 #include <iceoryx_posh/popo/listener.hpp>
 #include <iceoryx_posh/runtime/posh_runtime.hpp>
 #include <iceoryx_posh/runtime/service_discovery.hpp>
+#include <iox/optional.hpp>
+
+
+
+
 namespace ara::com::network_binding::iceoryx {
-
-
-
 class Runtime
 {
+
 public:
     Runtime(const Runtime&)            = delete;
     Runtime(Runtime&&)                 = delete;
@@ -31,7 +35,7 @@ public:
 
     static Runtime& GetInstance(const std::string& name) noexcept
     {
-        iox::runtime::PoshRuntime::initRuntime(iox::RuntimeName_t(iox::cxx::TruncateToCapacity, name));
+        iox::runtime::PoshRuntime::initRuntime(iox::RuntimeName_t(iox::cxx::TruncateToCapacity, name.c_str()));
         return GetInstance();
     }
 
@@ -48,9 +52,9 @@ public:
         // 查找发布-订阅服务
         ServiceHandleContainer<ProxyHandleType> iceoryxServiceContainer;
         m_discovery.findService(
-            iox::cxx::nullopt,
+            iox::nullopt,
             instanceIdentifier,
-            iox::cxx::nullopt,
+            iox::nullopt,
             [&](const iox::capro::ServiceDescription& service) {
                 iceoryxServiceContainer.push_back({service.getEventIDString(),service.getInstanceIDString()});
             },
@@ -59,9 +63,9 @@ public:
 
         // 查找请求-响应服务
         m_discovery.findService(
-            iox::cxx::nullopt,
+            iox::nullopt,
             instanceIdentifier,
-            iox::cxx::nullopt,
+            iox::nullopt,
             [&](const iox::capro::ServiceDescription& service) {
                 iceoryxServiceContainer.push_back({service.getEventIDString(),service.getInstanceIDString()});
             },
